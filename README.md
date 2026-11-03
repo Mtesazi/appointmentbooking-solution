@@ -1,59 +1,98 @@
-# AppointmentBooking
+# Appointment Booking
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.5.
+A modern Angular frontend for a smart appointment booking system. The application currently includes customer authentication flows, a dashboard overview, and a booking form for scheduling appointments.
 
-## Development server
+## Overview
 
-To start a local development server, run:
+This frontend is built with Angular 22 and provides a clean customer portal experience with:
+
+- Login page
+- Registration page
+- Customer dashboard
+- Appointment booking form
+- Route-based navigation for user flows
+
+## Current Features
+
+- Authentication pages under `src/app/features/authentication/pages/`
+- Customer dashboard under `src/app/features/customer/pages/dashboard/`
+- Booking flow under `src/app/features/appointments/pages/book-appointment/`
+- Shared app layout and routing through `src/app/app.routes.ts`
+
+## Project Structure
+
+```text
+src/app/
+├── core/
+│   ├── guards/
+│   ├── interceptors/
+│   ├── services/
+│   └── models/
+├── shared/
+│   ├── components/
+│   ├── directives/
+│   └── pipes/
+├── layouts/
+│   ├── customer-layout/
+│   └── admin-layout/
+├── features/
+│   ├── authentication/
+│   │   └── pages/
+│   │       ├── login/
+│   │       └── register/
+│   ├── customer/
+│   ├── branches/
+│   ├── appointments/
+│   ├── notifications/
+│   └── administration/
+├── app.routes.ts
+├── app.ts
+├── app.html
+├── app.scss
+└── app.config.ts
+```
+
+## Routes
+
+The application currently supports the following routes:
+
+- `/login`
+- `/register`
+- `/dashboard`
+- `/customer/book-appointment`
+
+## Getting Started
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run the app locally
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Then open:
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```text
+http://localhost:4200/
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Build
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Testing
 
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+## Notes
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This frontend is structured for future backend integration. The current dashboard and booking screen use demo data and are ready to be connected to real API services once the backend is available.
