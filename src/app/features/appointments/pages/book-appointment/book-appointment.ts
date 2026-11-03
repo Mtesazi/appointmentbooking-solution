@@ -4,6 +4,8 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AppointmentService } from '../../appointment.service';
 
 @Component({
   selector: 'app-book-appointment',
@@ -14,6 +16,8 @@ import {
 })
 export class BookAppointment {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly appointmentService = inject(AppointmentService);
 
   submitted = false;
   selectedTime = '';
@@ -70,10 +74,32 @@ export class BookAppointment {
       return;
     }
 
-    console.log('Booking details:', {
-      ...this.bookingForm.value,
-      appointmentTime: this.selectedTime
-    });
+    const formValue = this.bookingForm.getRawValue();
+
+    const selectedBranch = this.branches.find(
+      branch => branch.id.toString() === formValue.branchId
+    );
+
+    const selectedService = this.services.find(
+      service => service.id.toString() === formValue.serviceId
+    );
+
+    if (!selectedBranch || !selectedService || !formValue.appointmentDate) {
+      return;
+    }
+
+    const appointment = {
+      id: crypto.randomUUID(),
+      branch: selectedBranch.name,
+      service: selectedService.name,
+      date: formValue.appointmentDate,
+      time: this.selectedTime,
+      status: 'CONFIRMED' as const
+    };
+
+    this.appointmentService.saveAppointment(appointment);
+
+    this.router.navigate(['/customer/booking-confirmation']);
   }
 
   getLocalDate(): string {

@@ -31,6 +31,18 @@ export const routes: Routes = [
         .then(m => m.BookAppointment)
   },
   {
+    path: 'customer/booking-confirmation',
+    loadComponent: () =>
+      import('./features/appointments/pages/booking-confirmation/booking-confirmation')
+        .then(m => m.BookingConfirmation)
+  },
+  {
+    path: 'customer/my-appointments',
+    loadComponent: () =>
+      import('./features/appointments/pages/my-appointments/my-appointments')
+        .then(m => m.MyAppointments)
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }
