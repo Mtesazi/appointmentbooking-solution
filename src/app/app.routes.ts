@@ -19,6 +19,12 @@ export const routes: Routes = [
         .then(m => m.Register)
   },
   {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/customer/pages/dashboard/dashboard')
+        .then(m => m.Dashboard)
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }
