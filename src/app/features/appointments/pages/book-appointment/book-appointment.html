@@ -1,0 +1,173 @@
+<div class="booking-container">
+
+  <header class="booking-header">
+    <div>
+      <h1>Appointment Booking</h1>
+      <p>Customer Portal</p>
+    </div>
+
+    <span class="customer-label">Appointment Booking</span>
+  </header>
+
+  <main class="booking-content">
+
+    <section class="page-heading">
+      <h2>Book an Appointment</h2>
+      <p>Complete the details below to schedule your appointment.</p>
+    </section>
+
+    <div class="booking-layout">
+
+      <section class="booking-card">
+
+        <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()">
+
+          <div class="form-section">
+            <h3>01. Select a Branch</h3>
+            <p>Choose the branch you would like to visit.</p>
+
+            <select formControlName="branchId">
+              <option value="">Select a branch</option>
+
+              @for (branch of branches; track branch.id) {
+                <option [value]="branch.id">
+                  {{ branch.name }}
+                </option>
+              }
+            </select>
+
+            @if (bookingForm.controls.branchId.touched &&
+                 bookingForm.controls.branchId.invalid) {
+              <small class="error-message">
+                Please select a branch.
+              </small>
+            }
+          </div>
+
+          <div class="form-section">
+            <h3>02. Select a Service</h3>
+            <p>What type of appointment do you need?</p>
+
+            <div class="service-grid">
+
+              @for (service of services; track service.id) {
+                <label class="service-option">
+
+                  <input
+                    type="radio"
+                    formControlName="serviceId"
+                    [value]="service.id.toString()"
+                  />
+
+                  <div>
+                    <strong>{{ service.name }}</strong>
+                    <span>{{ service.duration }}</span>
+                  </div>
+
+                </label>
+              }
+
+            </div>
+
+            @if (bookingForm.controls.serviceId.touched &&
+                 bookingForm.controls.serviceId.invalid) {
+              <small class="error-message">
+                Please select a service.
+              </small>
+            }
+          </div>
+
+          <div class="form-section">
+            <h3>03. Select a Date</h3>
+            <p>Choose your preferred appointment date.</p>
+
+            <input
+              type="date"
+              formControlName="appointmentDate"
+              [min]="today"
+            />
+
+            @if (bookingForm.controls.appointmentDate.touched &&
+                 bookingForm.controls.appointmentDate.invalid) {
+              <small class="error-message">
+                Please select an appointment date.
+              </small>
+            }
+          </div>
+
+          <div class="form-section">
+            <h3>04. Available Time Slots</h3>
+            <p>Select your preferred appointment time.</p>
+
+            <div class="time-grid">
+
+              @for (slot of timeSlots; track slot) {
+                <button
+                  type="button"
+                  class="time-slot"
+                  [class.selected]="selectedTime === slot"
+                  [attr.aria-pressed]="selectedTime === slot"
+                  (click)="selectTime(slot)">
+                  {{ slot }}
+                </button>
+              }
+
+            </div>
+
+            @if (submitted && !selectedTime) {
+              <small class="error-message">
+                Please select an appointment time.
+              </small>
+            }
+          </div>
+
+          <button type="submit" class="confirm-button">
+            Review Booking
+          </button>
+
+        </form>
+
+      </section>
+
+      <aside class="booking-summary">
+
+        <h3>Booking Summary</h3>
+        <p>Your selected appointment details.</p>
+
+        <div class="summary-item">
+          <span>Branch</span>
+          <strong>
+            {{ bookingForm.controls.branchId.value || 'Not selected' }}
+          </strong>
+        </div>
+
+        <div class="summary-item">
+          <span>Service</span>
+          <strong>
+            {{ bookingForm.controls.serviceId.value || 'Not selected' }}
+          </strong>
+        </div>
+
+        <div class="summary-item">
+          <span>Date</span>
+          <strong>
+            {{ bookingForm.controls.appointmentDate.value || 'Not selected' }}
+          </strong>
+        </div>
+
+        <div class="summary-item">
+          <span>Time</span>
+          <strong>{{ selectedTime || 'Not selected' }}</strong>
+        </div>
+
+        <div class="summary-note">
+          Please review your selections before continuing.
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+</div>
