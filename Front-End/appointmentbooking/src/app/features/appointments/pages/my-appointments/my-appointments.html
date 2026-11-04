@@ -1,0 +1,92 @@
+<main class="appointments-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CUSTOMER PORTAL</p>
+      <h1>My Appointments</h1>
+      <p>View and manage your appointments.</p>
+    </div>
+
+    <a routerLink="/customer/book-appointment" class="book-button">
+      + Book Appointment
+    </a>
+  </header>
+
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+
+  @if (loading) {
+    <p aria-live="polite">Loading your appointments…</p>
+  }
+
+  <section class="appointment-section">
+    <h2>Upcoming Appointments</h2>
+
+    @if (upcomingAppointments.length > 0) {
+      <div class="appointment-list">
+        @for (appointment of upcomingAppointments; track appointment.id) {
+          <article class="appointment-card">
+            <div class="date-block">
+              <strong>{{ appointment.date | date:'d' }}</strong>
+              <span>{{ appointment.date | date:'MMM' }}</span>
+            </div>
+
+            <div class="appointment-info">
+              <h3>{{ appointment.service }}</h3>
+              <p>{{ appointment.branch }}</p>
+              <p>
+                {{ appointment.date | date:'EEEE, d MMMM y' }}
+                · {{ appointment.time }}
+              </p>
+            </div>
+
+            <span class="status confirmed">{{ appointment.status }}</span>
+            <button type="button" class="cancel-button"
+              [disabled]="cancellingId === appointment.id"
+              (click)="cancelAppointment(appointment)">
+              {{ cancellingId === appointment.id ? 'Cancelling…' : 'Cancel' }}
+            </button>
+          </article>
+        }
+      </div>
+    } @else if (!loading && !errorMessage) {
+      <div class="empty-state">
+        <h3>No upcoming appointments</h3>
+        <p>Your confirmed appointments will appear here.</p>
+        <a routerLink="/customer/book-appointment">Book an appointment</a>
+      </div>
+    }
+  </section>
+
+  <section class="appointment-section">
+    <h2>Past Appointments</h2>
+
+    @if (pastAppointments.length > 0) {
+      <div class="appointment-list">
+        @for (appointment of pastAppointments; track appointment.id) {
+          <article class="appointment-card">
+            <div class="date-block">
+              <strong>{{ appointment.date | date:'d' }}</strong>
+              <span>{{ appointment.date | date:'MMM' }}</span>
+            </div>
+
+            <div class="appointment-info">
+              <h3>{{ appointment.service }}</h3>
+              <p>{{ appointment.branch }}</p>
+              <p>
+                {{ appointment.date | date:'EEEE, d MMMM y' }}
+                · {{ appointment.time }}
+              </p>
+            </div>
+
+            <span class="status">{{ appointment.status }}</span>
+          </article>
+        }
+      </div>
+    } @else if (!loading && !errorMessage) {
+      <div class="empty-state">
+        <p>You don't have any past appointments yet.</p>
+      </div>
+    }
+  </section>
+</main>
