@@ -8,11 +8,6 @@ export interface Appointment {
   notes: string | null;
 }
 
-export interface Branch {
-  id: number;
-  name: string;
-}
-
 export interface AppointmentServiceOption {
   id: number;
   name: string;

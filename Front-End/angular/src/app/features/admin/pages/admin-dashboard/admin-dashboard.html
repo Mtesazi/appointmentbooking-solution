@@ -1,0 +1,75 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">OVERVIEW</p>
+    <h1>Good morning, Admin</h1>
+    <p class="subheading">Here’s what’s happening with your appointments.</p>
+  </div>
+  <a class="primary-link" routerLink="/admin/appointments">View appointments <span aria-hidden="true">→</span></a>
+</header>
+
+<section class="summary-grid" aria-label="Appointment summary">
+  <article class="summary-card">
+    <div class="card-icon blue" aria-hidden="true">▣</div>
+    <p>Total appointments</p>
+    <strong>{{ stats.totalAppointments }}</strong>
+    <small>Across all time</small>
+  </article>
+  <article class="summary-card">
+    <div class="card-icon green" aria-hidden="true">◷</div>
+    <p>Upcoming appointments</p>
+    <strong>{{ stats.upcomingAppointments }}</strong>
+    <small>In this sample view</small>
+  </article>
+  <article class="summary-card">
+    <div class="card-icon purple" aria-hidden="true">♙</div>
+    <p>Registered customers</p>
+    <strong>{{ stats.totalCustomers }}</strong>
+    <small>Across all branches</small>
+  </article>
+  <article class="summary-card">
+    <div class="card-icon orange" aria-hidden="true">✳</div>
+    <p>Active services</p>
+    <strong>{{ stats.activeServices }}</strong>
+    <small>Available to book</small>
+  </article>
+</section>
+
+<section class="appointments-panel">
+  <div class="panel-heading">
+    <div>
+      <h2>Recent appointments</h2>
+      <p>A quick look at the latest bookings.</p>
+    </div>
+    <a routerLink="/admin/appointments">See all</a>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Service</th>
+          <th>Branch</th>
+          <th>Date &amp; time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (appointment of recentAppointments; track appointment.id) {
+          <tr>
+            <td>
+              <strong class="customer-name">{{ appointment.customerName }}</strong>
+              <small>{{ appointment.customerEmail }}</small>
+            </td>
+            <td>{{ appointment.service }}</td>
+            <td>{{ appointment.branch }}</td>
+            <td>{{ appointment.date | date:'dd MMM yyyy' }}<small>{{ appointment.time }}</small></td>
+            <td>
+              <span class="status" [class]="'status ' + appointment.status.toLowerCase()">{{ appointment.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

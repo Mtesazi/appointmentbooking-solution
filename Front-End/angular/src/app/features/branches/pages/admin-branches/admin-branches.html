@@ -1,0 +1,117 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">WORKSPACE</p>
+    <h1>Branches</h1>
+    <p class="subheading">Manage the locations customers can book with.</p>
+  </div>
+  <button class="primary-button" type="button" (click)="openCreateForm()">
+    <span aria-hidden="true">＋</span>
+    Add branch
+  </button>
+</header>
+
+<p class="sr-only" aria-live="polite">{{ announcement }}</p>
+
+<section class="branch-panel" aria-label="Branch directory">
+  <div class="filters">
+    <label class="search-field">
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        placeholder="Search branches…"
+        aria-label="Search branches">
+    </label>
+
+    <label class="status-filter">
+      <span>Status</span>
+      <select [(ngModel)]="selectedStatus" aria-label="Filter branches by status">
+        <option value="ALL">All branches</option>
+        <option value="ACTIVE">Active</option>
+        <option value="INACTIVE">Inactive</option>
+      </select>
+    </label>
+    <span class="record-count">{{ filteredBranches.length }} shown</span>
+  </div>
+
+  <div class="branch-grid">
+    @for (branch of filteredBranches; track branch.id) {
+      <article class="branch-card">
+        <div class="branch-card-top">
+          <div class="branch-icon" aria-hidden="true">⌖</div>
+          <span class="branch-status" [class.inactive]="!branch.active">
+            <span class="status-dot"></span>
+            {{ branch.active ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+
+        <p class="branch-id">BRANCH {{ branch.id.toString().padStart(3, '0') }}</p>
+        <h2>{{ branch.name }}</h2>
+        <p class="branch-description">Customer appointment location</p>
+
+        <div class="branch-actions">
+          <button type="button" class="edit-button" (click)="openEditForm(branch)">Edit</button>
+          <button type="button" class="delete-button" (click)="deleteBranch(branch)">Remove</button>
+        </div>
+      </article>
+    } @empty {
+      <div class="empty-state">
+        <span aria-hidden="true">⌖</span>
+        <h2>No branches found</h2>
+        <p>Try changing your search or status filter.</p>
+      </div>
+    }
+  </div>
+
+  <p class="panel-note">Preview only: changes are kept in memory and will reset when you reload the app.</p>
+</section>
+
+@if (isFormOpen) {
+  <div class="modal-backdrop" (click)="closeForm()">
+    <section
+      class="branch-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="branch-dialog-title"
+      (click)="$event.stopPropagation()">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">{{ editingId === null ? 'NEW LOCATION' : 'BRANCH SETTINGS' }}</p>
+          <h2 id="branch-dialog-title">{{ editingId === null ? 'Add a branch' : 'Edit branch' }}</h2>
+        </div>
+        <button type="button" class="close-button" aria-label="Close" (click)="closeForm()">×</button>
+      </div>
+
+      <form #branchForm="ngForm" (ngSubmit)="saveBranch()">
+        <label class="field-label" for="branch-name">Branch name</label>
+        <input
+          id="branch-name"
+          name="branchName"
+          type="text"
+          [(ngModel)]="branchName"
+          maxlength="120"
+          required
+          autocomplete="off"
+          placeholder="e.g. Cape Town Central">
+        @if (formError) {
+          <p class="form-error" role="alert">{{ formError }}</p>
+        }
+
+        <label class="active-toggle">
+          <input type="checkbox" name="branchActive" [(ngModel)]="branchActive">
+          <span>
+            <strong>Branch is active</strong>
+            <small>Active branches are available for customer bookings.</small>
+          </span>
+        </label>
+
+        <div class="dialog-actions">
+          <button type="button" class="cancel-button" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="!branchForm.valid">
+            {{ editingId === null ? 'Add branch' : 'Save changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

@@ -1,0 +1,174 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #23364d;
+  font-family: Arial, sans-serif;
+}
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex: 0 0 250px;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  background: #14263d;
+  color: #e7edf5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px 34px;
+  color: inherit;
+  text-decoration: none;
+
+  strong,
+  small {
+    display: block;
+  }
+
+  strong {
+    font-size: 15px;
+  }
+
+  small {
+    margin-top: 5px;
+    color: #a9bad0;
+    font-size: 12px;
+  }
+}
+
+.brand-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: #4c87d9;
+  color: white;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.nav-label {
+  margin: 0 10px 12px;
+  color: #91a5bd;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+nav {
+  display: grid;
+  gap: 7px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 13px;
+    border-radius: 8px;
+    color: #c3cfdd;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 120ms ease, color 120ms ease;
+
+    span {
+      width: 18px;
+      text-align: center;
+      font-size: 17px;
+    }
+
+    &:hover,
+    &.active {
+      background: #263d5a;
+      color: white;
+    }
+
+    &.active {
+      box-shadow: inset 3px 0 #72a8f4;
+    }
+  }
+}
+
+.sidebar-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 13px 10px 0;
+  color: #a9bad0;
+  font-size: 12px;
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4bd39b;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 32px 36px;
+}
+
+.preview-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 27px;
+  padding: 12px 15px;
+  border: 1px solid #f3d48b;
+  border-radius: 9px;
+  background: #fff8e7;
+  color: #725619;
+  font-size: 12px;
+  line-height: 1.5;
+
+  strong {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    flex-basis: auto;
+    padding: 17px;
+  }
+
+  .brand {
+    padding: 0 4px 17px;
+  }
+
+  .nav-label,
+  .sidebar-note {
+    display: none;
+  }
+
+  nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-main {
+    padding: 17px 15px 28px;
+  }
+
+  .preview-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 21px;
+  }
+}

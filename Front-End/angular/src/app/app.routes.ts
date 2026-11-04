@@ -48,6 +48,37 @@ export const routes: Routes = [
         .then(m => m.MyAppointments)
   },
   {
+    path: 'admin',
+    loadComponent: () =>
+      import('./features/admin/layout/admin-layout/admin-layout')
+        .then(m => m.AdminLayout),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/admin/pages/admin-dashboard/admin-dashboard')
+            .then(m => m.AdminDashboard)
+      },
+      {
+        path: 'appointments',
+        loadComponent: () =>
+          import('./features/admin/pages/admin-appointments/admin-appointments')
+            .then(m => m.AdminAppointments)
+      },
+      {
+        path: 'branches',
+        loadComponent: () =>
+          import('./features/branches/pages/admin-branches/admin-branches')
+            .then(m => m.AdminBranches)
+      }
+    ]
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }

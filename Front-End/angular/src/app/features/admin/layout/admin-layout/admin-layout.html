@@ -1,0 +1,40 @@
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a class="brand" routerLink="/admin/dashboard">
+      <span class="brand-mark">A</span>
+      <span>
+        <strong>Appointment</strong>
+        <small>Administration</small>
+      </span>
+    </a>
+
+    <p class="nav-label">WORKSPACE</p>
+    <nav aria-label="Administration">
+      <a routerLink="/admin/dashboard" routerLinkActive="active">
+        <span aria-hidden="true">▦</span>
+        Overview
+      </a>
+      <a routerLink="/admin/appointments" routerLinkActive="active">
+        <span aria-hidden="true">▣</span>
+        Appointments
+      </a>
+      <a routerLink="/admin/branches" routerLinkActive="active">
+        <span aria-hidden="true">⌖</span>
+        Branches
+      </a>
+    </nav>
+
+    <div class="sidebar-note">
+      <span class="online-dot"></span>
+      Admin preview
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="preview-banner" role="status">
+      <strong>Preview mode</strong>
+      <span>This screen uses sample data. Admin sign-in and live management will be connected when the backend is ready.</span>
+    </div>
+    <router-outlet />
+  </div>
+</div>

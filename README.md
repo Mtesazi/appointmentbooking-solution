@@ -18,6 +18,7 @@ Appointment Booking is a full-stack application for customers to register, sign 
 - Customer dashboard with appointment summaries
 - Browse available branches and services
 - Create, view, and cancel appointments
+- Admin dashboard and searchable appointment list (frontend preview with sample data)
 - MySQL persistence with Flyway-managed database migrations
 
 ## Requirements
@@ -80,6 +81,8 @@ npm start
 ```
 
 Open `http://localhost:4200`. The development frontend is configured to call the backend at `http://localhost:8082/api` in `src/environments/environment.ts`.
+
+The admin UI preview is available at `http://localhost:4200/admin`. It includes a dashboard, appointments list, and branch management. Branches can be added, edited, searched, filtered, and removed in the preview; these changes are held in memory and reset when the app reloads. Admin authentication, authorization, and live administration APIs are not implemented yet.
 
 ## API overview
 

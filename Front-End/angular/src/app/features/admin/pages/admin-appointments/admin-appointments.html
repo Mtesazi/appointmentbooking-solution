@@ -1,0 +1,73 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">WORKSPACE</p>
+    <h1>Appointments</h1>
+    <p class="subheading">Review and track customer bookings.</p>
+  </div>
+  <span class="record-count">{{ filteredAppointments.length }} shown</span>
+</header>
+
+<section class="appointments-panel">
+  <div class="filters">
+    <label class="search-field">
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        placeholder="Search customer, service, branch…"
+        aria-label="Search appointments">
+    </label>
+
+    <label class="status-filter">
+      <span>Status</span>
+      <select [(ngModel)]="selectedStatus" aria-label="Filter appointments by status">
+        <option value="ALL">All statuses</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Appointment</th>
+          <th>Customer</th>
+          <th>Service &amp; branch</th>
+          <th>Date &amp; time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (appointment of filteredAppointments; track appointment.id) {
+          <tr>
+            <td class="appointment-id">#{{ appointment.id }}</td>
+            <td>
+              <strong class="customer-name">{{ appointment.customerName }}</strong>
+              <small>{{ appointment.customerEmail }}</small>
+            </td>
+            <td>
+              <strong class="service-name">{{ appointment.service }}</strong>
+              <small>{{ appointment.branch }}</small>
+            </td>
+            <td>
+              <strong class="service-name">{{ appointment.date | date:'dd MMM yyyy' }}</strong>
+              <small>{{ appointment.time }}</small>
+            </td>
+            <td>
+              <span class="status" [class]="'status ' + appointment.status.toLowerCase()">{{ appointment.status }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="empty-state" colspan="5">No appointments match your search.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="table-footnote">Showing sample appointments. Changes and live data are not available in preview mode.</p>
+</section>
