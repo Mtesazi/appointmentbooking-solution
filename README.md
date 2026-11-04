@@ -9,7 +9,7 @@ Appointment Booking is a full-stack application for customers to register, sign 
 ├── Back-End/
 │   └── appointment-service/   Spring Boot REST API
 └── Front-End/
-    └── appointmentbooking/    Angular customer application
+    └── angular/               Angular customer application
 ```
 
 ## Features
@@ -24,7 +24,7 @@ Appointment Booking is a full-stack application for customers to register, sign 
 
 - Java 21
 - MySQL 8 or compatible
-- Node.js and npm compatible with the Angular version in `Front-End/appointmentbooking/package.json`
+- Node.js and npm compatible with the Angular version in `Front-End/angular/package.json`
 
 The backend uses the included Maven Wrapper, so a separate Maven installation is not required.
 
@@ -74,7 +74,7 @@ The API runs at `http://localhost:8082/api`. The health endpoint is `http://loca
 In another terminal:
 
 ```bash
-cd Front-End/appointmentbooking
+cd Front-End/angular
 npm install
 npm start
 ```
@@ -109,7 +109,7 @@ cd Back-End/appointment-service
 Frontend tests and production build:
 
 ```bash
-cd Front-End/appointmentbooking
+cd Front-End/angular
 npm test
 npm run build
 ```
