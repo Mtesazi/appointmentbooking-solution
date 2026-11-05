@@ -1,6 +1,7 @@
 <main class="appointments-page">
   <header class="page-header">
     <div>
+      <a routerLink="/dashboard" class="dashboard-link">← Dashboard</a>
       <p class="eyebrow">CUSTOMER PORTAL</p>
       <h1>My Appointments</h1>
       <p>View and manage your appointments.</p>
@@ -13,10 +14,7 @@
 
   @if (errorMessage) {
     <p class="error-message" role="alert">{{ errorMessage }}</p>
-  }
-
-  @if (loading) {
-    <p aria-live="polite">Loading your appointments…</p>
+    <button type="button" class="retry-button" (click)="loadAppointments()">Try again</button>
   }
 
   <section class="appointment-section">

@@ -70,8 +70,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 	public List<AppointmentResponse> getForCustomer(Long customerId) {
 		appointmentRepository.completeExpiredAppointments(customerId, LocalDate.now(), LocalTime.now(),
 				Appointment.Status.CONFIRMED, Appointment.Status.COMPLETED);
-		return appointmentRepository.findAllByCustomerIdOrderByAppointmentDateDescStartTimeDesc(customerId).stream()
-				.map(this::toResponse)
+		return appointmentRepository.findSummariesByCustomerId(customerId).stream()
+				.map(appointmentMapper::toResponse)
 				.toList();
 	}
 

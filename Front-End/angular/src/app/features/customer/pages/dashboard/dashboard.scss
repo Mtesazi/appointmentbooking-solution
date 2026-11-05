@@ -275,6 +275,19 @@
   overflow-x: auto;
 }
 
+.retry-button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #102a43;
+  color: white;
+  cursor: pointer;
+
+  &:hover {
+    background: #17456d;
+  }
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

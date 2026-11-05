@@ -26,8 +26,12 @@ export class Dashboard implements OnInit {
   recentAppointments: Appointment[] = [];
   loading = true;
   errorMessage = '';
+  appointmentsLoading = true;
+  appointmentsErrorMessage = '';
 
   ngOnInit(): void {
+    this.loadAppointments();
+
     this.appointmentService.getDashboard().subscribe({
       next: (dashboard: DashboardData) => {
         this.customerName = dashboard.customerName;
@@ -35,12 +39,26 @@ export class Dashboard implements OnInit {
         this.completedAppointments = dashboard.completedAppointments;
         this.cancelledAppointments = dashboard.cancelledAppointments;
         this.nextAppointment = dashboard.nextAppointment;
-        this.recentAppointments = dashboard.recentAppointments;
         this.loading = false;
       },
       error: error => {
         this.errorMessage = getApiErrorMessage(error);
         this.loading = false;
+      }
+    });
+  }
+
+  loadAppointments(): void {
+    this.appointmentsLoading = true;
+    this.appointmentsErrorMessage = '';
+    this.appointmentService.getAppointments().subscribe({
+      next: appointments => {
+        this.recentAppointments = appointments;
+        this.appointmentsLoading = false;
+      },
+      error: error => {
+        this.appointmentsErrorMessage = getApiErrorMessage(error);
+        this.appointmentsLoading = false;
       }
     });
   }

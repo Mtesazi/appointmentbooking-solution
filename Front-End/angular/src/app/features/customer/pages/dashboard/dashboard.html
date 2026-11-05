@@ -12,11 +12,6 @@
         Dashboard
       </a>
 
-      <a class="nav-item" routerLink="/customer/my-appointments">
-        <span>▣</span>
-        My Appointments
-      </a>
-
       <a class="nav-item" routerLink="/customer/book-appointment">
         <span>＋</span>
         Book Appointment
@@ -136,57 +131,63 @@
       </section>
     }
 
+    }
+
     <section class="recent-appointments">
 
       <div class="section-heading">
         <h2>Recent Appointments</h2>
-        <span>Appointment history</span>
+        <a
+          routerLink="/customer/my-appointments"
+          [state]="{ appointments: recentAppointments }">
+          View all appointments
+        </a>
       </div>
 
-      <div class="table-wrapper">
-
-        <table>
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Branch</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (appointment of recentAppointments; track $index) {
+      @if (appointmentsErrorMessage) {
+        <p class="error-message" role="alert">{{ appointmentsErrorMessage }}</p>
+        <button type="button" class="retry-button" (click)="loadAppointments()">Try again</button>
+      } @else if (!appointmentsLoading) {
+        <div class="table-wrapper">
+          <table>
+            <thead>
               <tr>
-                <td>{{ appointment.service }}</td>
-                <td>{{ appointment.branch }}</td>
-                <td>{{ appointment.date | date:'dd MMM yyyy' }}</td>
-                <td>{{ appointment.time }}</td>
-                <td>
-                  <span
-                    class="status"
-                    [class.confirmed]="appointment.status === 'CONFIRMED'"
-                    [class.completed]="appointment.status === 'COMPLETED'"
-                    [class.cancelled]="appointment.status === 'CANCELLED'">
-                    {{ appointment.status }}
-                  </span>
-                </td>
+                <th>Service</th>
+                <th>Branch</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="5">No appointments yet.</td>
-              </tr>
-            }
-          </tbody>
+            </thead>
 
-        </table>
-
-      </div>
+            <tbody>
+              @for (appointment of recentAppointments.slice(0, 5); track appointment.id) {
+                <tr>
+                  <td>{{ appointment.service }}</td>
+                  <td>{{ appointment.branch }}</td>
+                  <td>{{ appointment.date | date:'dd MMM yyyy' }}</td>
+                  <td>{{ appointment.time }}</td>
+                  <td>
+                    <span
+                      class="status"
+                      [class.confirmed]="appointment.status === 'CONFIRMED'"
+                      [class.completed]="appointment.status === 'COMPLETED'"
+                      [class.cancelled]="appointment.status === 'CANCELLED'">
+                      {{ appointment.status }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5">No appointments yet.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
 
     </section>
-
-    }
 
   </main>
 

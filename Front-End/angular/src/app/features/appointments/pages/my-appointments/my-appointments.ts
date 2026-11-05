@@ -26,10 +26,41 @@ export class MyAppointments implements OnInit {
 
   loadAppointments(): void {
     this.loading = true;
+    this.errorMessage = '';
+    const navigationState = history.state as { appointment?: Appointment; appointments?: Appointment[] };
+    const cachedAppointments = this.appointmentService.getCachedAppointments() ?? [];
+    const navigationAppointments = [
+      ...(Array.isArray(navigationState.appointments) ? navigationState.appointments : []),
+      ...(navigationState.appointment ? [navigationState.appointment] : [])
+    ];
+    this.appointments = [...navigationAppointments, ...cachedAppointments]
+      .filter((appointment, index, list) =>
+        list.findIndex(item => item.id === appointment.id) === index
+      );
+
     this.appointmentService.getAppointments().subscribe({
       next: appointments => {
-        this.appointments = appointments;
-        this.loading = false;
+        if (appointments.length > 0) {
+          this.appointments = appointments;
+          this.loading = false;
+          return;
+        }
+
+        if (this.appointments.length > 0) {
+          this.loading = false;
+          return;
+        }
+
+        this.appointmentService.getDashboard().subscribe({
+          next: dashboard => {
+            this.appointments = dashboard.recentAppointments;
+            this.loading = false;
+          },
+          error: error => {
+            this.errorMessage = getApiErrorMessage(error);
+            this.loading = false;
+          }
+        });
       },
       error: error => {
         this.errorMessage = getApiErrorMessage(error);

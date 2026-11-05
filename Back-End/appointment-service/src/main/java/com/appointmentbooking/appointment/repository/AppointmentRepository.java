@@ -10,10 +10,22 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.appointmentbooking.appointment.dto.AppointmentSummary;
 import com.appointmentbooking.appointment.entity.Appointment;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 	List<Appointment> findAllByCustomerIdOrderByAppointmentDateDescStartTimeDesc(Long customerId);
+
+	@Query("""
+			select new com.appointmentbooking.appointment.dto.AppointmentSummary(
+				a.id, b.name, o.name, a.appointmentDate, a.startTime, a.status, a.notes)
+			from Appointment a
+			join Branch b on b.id = a.branchId
+			join Offering o on o.id = a.serviceId
+			where a.customerId = :customerId
+			order by a.appointmentDate desc, a.startTime desc
+			""")
+	List<AppointmentSummary> findSummariesByCustomerId(@Param("customerId") Long customerId);
 
 	Optional<Appointment> findByIdAndCustomerId(Long id, Long customerId);
 

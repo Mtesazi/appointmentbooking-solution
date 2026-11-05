@@ -6,7 +6,8 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppointmentService } from '../../appointment.service';
-import { AppointmentServiceOption, Branch } from '../../appointment.model';
+import { Branch } from '../../../branches/branch.model';
+import { AppointmentServiceOption } from '../../appointment.model';
 import { getApiErrorMessage } from '../../../../core/api-error';
 
 @Component({

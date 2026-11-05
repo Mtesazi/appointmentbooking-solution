@@ -42,7 +42,10 @@
       </div>
 
       <div class="actions">
-        <a routerLink="/customer/my-appointments" class="primary-button">
+        <a
+          routerLink="/customer/my-appointments"
+          [state]="{ appointment: appointment }"
+          class="primary-button">
           View My Appointments
         </a>
 

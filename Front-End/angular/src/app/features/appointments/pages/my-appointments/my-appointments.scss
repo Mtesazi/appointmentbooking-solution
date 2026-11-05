@@ -28,6 +28,17 @@
   letter-spacing: 1.5px;
 }
 
+.dashboard-link {
+  color: #526783;
+  font-size: 14px;
+  text-decoration: none;
+
+  &:hover {
+    color: #102a56;
+    text-decoration: underline;
+  }
+}
+
 .book-button {
   padding: 13px 18px;
   border-radius: 9px;
@@ -35,6 +46,19 @@
   color: white;
   text-decoration: none;
   font-weight: 600;
+}
+
+.retry-button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #102a56;
+  color: white;
+  cursor: pointer;
+
+  &:hover {
+    background: #17456d;
+  }
 }
 
 .appointment-section {

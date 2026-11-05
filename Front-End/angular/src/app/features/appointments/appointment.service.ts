@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Branch } from '../branches/branch.model';
 import {
   Appointment,
   AppointmentServiceOption,
-  Branch,
   CreateAppointmentRequest,
   Dashboard
 } from './appointment.model';
@@ -16,6 +16,7 @@ export class AppointmentService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}`;
   private readonly confirmationStorageKey = 'appointment-booking-last-confirmation';
+  private cachedAppointments: Appointment[] | null = null;
 
   getBranches(): Observable<Branch[]> {
     return this.http.get<Branch[]>(`${this.apiUrl}/branches`);
@@ -26,7 +27,18 @@ export class AppointmentService {
   }
 
   getAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.apiUrl}/appointments`);
+    return this.http.get<Appointment[]>(`${this.apiUrl}/appointments`).pipe(
+      timeout({ first: 15000 }),
+      tap(appointments => {
+        if (appointments.length > 0 || this.cachedAppointments === null) {
+          this.cachedAppointments = appointments;
+        }
+      })
+    );
+  }
+
+  getCachedAppointments(): Appointment[] | null {
+    return this.cachedAppointments;
   }
 
   createAppointment(request: CreateAppointmentRequest): Observable<Appointment> {
@@ -34,7 +46,15 @@ export class AppointmentService {
   }
 
   cancelAppointment(id: number): Observable<Appointment> {
-    return this.http.patch<Appointment>(`${this.apiUrl}/appointments/${id}/cancel`, {});
+    return this.http.patch<Appointment>(`${this.apiUrl}/appointments/${id}/cancel`, {}).pipe(
+      tap(updatedAppointment => {
+        if (this.cachedAppointments) {
+          this.cachedAppointments = this.cachedAppointments.map(appointment =>
+            appointment.id === updatedAppointment.id ? updatedAppointment : appointment
+          );
+        }
+      })
+    );
   }
 
   getDashboard(): Observable<Dashboard> {
@@ -43,6 +63,10 @@ export class AppointmentService {
 
   saveBookingConfirmation(appointment: Appointment): void {
     sessionStorage.setItem(this.confirmationStorageKey, JSON.stringify(appointment));
+    this.cachedAppointments = [
+      appointment,
+      ...(this.cachedAppointments ?? []).filter(item => item.id !== appointment.id)
+    ];
   }
 
   getBookingConfirmation(): Appointment | null {

@@ -19,29 +19,29 @@ Appointment Booking is a full-stack application for customers to register, sign 
 - Browse available branches and services
 - Create, view, and cancel appointments
 - Admin dashboard and searchable appointment list (frontend preview with sample data)
-- MySQL persistence with Flyway-managed database migrations
+- PostgreSQL persistence with Flyway-managed database migrations
 
 ## Requirements
 
 - Java 21
-- MySQL 8 or compatible
+- PostgreSQL 15 or compatible
 - Node.js and npm compatible with the Angular version in `Front-End/angular/package.json`
 
 The backend uses the included Maven Wrapper, so a separate Maven installation is not required.
 
 ## Run locally
 
-### 1. Create the database and application user
+### 1. Create the PostgreSQL database and application user
 
-Start MySQL, connect as a MySQL administrator, then create the database and a local user. Replace the example password with a strong local development password:
+Start PostgreSQL, then create the database and a local user. On Ubuntu, open a PostgreSQL administrator session with `sudo -u postgres psql`. Replace the example password with a strong local development password:
 
 ```sql
-CREATE DATABASE appointment_booking;
-CREATE USER 'dev-user'@'localhost' IDENTIFIED BY 'replace-with-a-local-password';
-GRANT ALL PRIVILEGES ON appointment_booking.* TO 'dev-user'@'localhost';
+CREATE USER "dev-user" WITH PASSWORD 'replace-with-a-local-password';
+CREATE DATABASE appointment_booking OWNER "dev-user";
+\q
 ```
 
-Flyway applies the SQL files in `Back-End/appointment-service/src/main/resources/db/migration` when the backend starts.
+Flyway creates the schema and seed catalog data from `Back-End/appointment-service/src/main/resources/db/migration` when the backend starts. The PostgreSQL setup starts with an empty database and does not import data from another database.
 
 ### 2. Configure and run the backend
 
@@ -49,17 +49,17 @@ The backend reads these environment variables:
 
 | Variable | Required | Default / example |
 |---|---|---|
-| `SPRING_DATASOURCE_URL` | No | `jdbc:mysql://localhost:3306/appointment_booking` |
+| `SPRING_DATASOURCE_URL` | No | `jdbc:postgresql://localhost:5432/appointment_booking` |
 | `SPRING_DATASOURCE_USERNAME` | No | `dev-user` |
-| `SPRING_DATASOURCE_PASSWORD` | Yes | The password configured for the MySQL user |
+| `SPRING_DATASOURCE_PASSWORD` | Yes | The password configured for the PostgreSQL user |
 | `JWT_SECRET` | Yes | A randomly generated secret of at least 32 bytes |
 
 Set the variables in your shell or IDE run configuration. For example, in a Bash terminal:
 
 ```bash
-export SPRING_DATASOURCE_URL='jdbc:mysql://localhost:3306/appointment_booking'
+export SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/appointment_booking'
 export SPRING_DATASOURCE_USERNAME='dev-user'
-export SPRING_DATASOURCE_PASSWORD='your-local-mysql-password'
+export SPRING_DATASOURCE_PASSWORD='your-local-postgresql-password'
 export JWT_SECRET='replace-with-a-random-secret-at-least-32-bytes-long'
 
 cd Back-End/appointment-service

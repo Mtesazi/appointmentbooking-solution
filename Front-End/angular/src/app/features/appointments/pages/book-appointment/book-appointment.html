@@ -130,7 +130,7 @@
           </div>
 
           <button type="submit" class="confirm-button" [disabled]="loadingCatalog || submitting">
-            {{ submitting ? 'Booking…' : 'Review Booking' }}
+            <span aria-live="polite">{{ submitting ? 'Making your booking…' : 'Make Your Booking' }}</span>
           </button>
 
         </form>
