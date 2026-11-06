@@ -9,6 +9,6 @@ import com.appointmentbooking.appointment.entity.Customer;
 public class CustomerMapper {
 	public CustomerResponse toResponse(Customer customer) {
 		return new CustomerResponse(customer.getId(), customer.getFirstName(), customer.getLastName(),
-				customer.getEmail(), customer.getPhone());
+				customer.getEmail(), customer.getPhone(), customer.getRole());
 	}
 }

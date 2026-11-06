@@ -8,4 +8,10 @@ import com.appointmentbooking.appointment.entity.Branch;
 
 public interface BranchRepository extends JpaRepository<Branch, Long> {
 	List<Branch> findAllByActiveTrueOrderByIdAsc();
+
+	List<Branch> findAllByOrderByIdAsc();
+
+	boolean existsByNameIgnoreCase(String name);
+
+	boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

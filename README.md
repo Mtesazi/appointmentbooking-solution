@@ -15,10 +15,11 @@ Appointment Booking is a full-stack application for customers to register, sign 
 ## Features
 
 - Customer registration and login with JWT authentication
+- Sign out with server-side access-token revocation
 - Customer dashboard with appointment summaries
 - Browse available branches and services
 - Create, view, and cancel appointments
-- Admin dashboard and searchable appointment list (frontend preview with sample data)
+- Role-protected admin dashboard, appointment list, and branch management backed by PostgreSQL
 - PostgreSQL persistence with Flyway-managed database migrations
 
 ## Requirements
@@ -69,6 +70,7 @@ cd Back-End/appointment-service
 Spring Boot does not load a `.env` file automatically when launched with Maven. Do not commit `.env` files or real credentials.
 
 The API runs at `http://localhost:8082/api`. The health endpoint is `http://localhost:8082/actuator/health`.
+Swagger UI is available at `http://localhost:8082/swagger-ui/index.html`, and the OpenAPI specification is at `http://localhost:8082/v3/api-docs`. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
 
 ### 3. Run the frontend
 
@@ -82,7 +84,15 @@ npm start
 
 Open `http://localhost:4200`. The development frontend is configured to call the backend at `http://localhost:8082/api` in `src/environments/environment.ts`.
 
-The admin UI preview is available at `http://localhost:4200/admin`. It includes a dashboard, appointments list, and branch management. Branches can be added, edited, searched, filtered, and removed in the preview; these changes are held in memory and reset when the app reloads. Admin authentication, authorization, and live administration APIs are not implemented yet.
+The admin UI is available at `http://localhost:4200/admin`. Its dashboard, appointment list, and branch management use the backend database and require an account with the `ADMIN` role. New registrations always receive the `CUSTOMER` role.
+
+To promote an existing account to admin, connect to the PostgreSQL database and update that account explicitly:
+
+```sql
+UPDATE customers SET role = 'ADMIN' WHERE email = 'admin@example.com';
+```
+
+After the role migration, existing users should sign out and back in to receive a token with their role. An account promoted to admin must also sign in again before the admin UI is available. Do not expose a public admin-registration flow.
 
 ## API overview
 
@@ -90,13 +100,17 @@ The admin UI preview is available at `http://localhost:4200/admin`. It includes 
 |---|---|---|
 | `POST` | `/api/auth/register` | Public |
 | `POST` | `/api/auth/login` | Public |
+| `POST` | `/api/auth/logout` | Authenticated |
 | `GET` | `/api/auth/me` | Authenticated |
 | `GET` | `/api/branches` | Authenticated |
 | `GET` | `/api/services` | Authenticated |
-| `GET` | `/api/customer/dashboard` | Authenticated |
-| `GET` | `/api/appointments` | Authenticated |
-| `POST` | `/api/appointments` | Authenticated |
-| `PATCH` | `/api/appointments/{appointmentId}/cancel` | Authenticated |
+| `GET` | `/api/customer/dashboard` | `CUSTOMER` |
+| `GET` | `/api/appointments` | `CUSTOMER` |
+| `POST` | `/api/appointments` | `CUSTOMER` |
+| `PATCH` | `/api/appointments/{appointmentId}/cancel` | `CUSTOMER` |
+| `GET` | `/api/admin/dashboard` | `ADMIN` |
+| `GET` | `/api/admin/appointments` | `ADMIN` |
+| `GET`, `POST`, `PUT`, `DELETE` | `/api/admin/branches[/{id}]` | `ADMIN` |
 
 Authenticated requests must include the JWT access token in the `Authorization` header using the Bearer scheme.
 

@@ -8,4 +8,6 @@ import com.appointmentbooking.appointment.entity.Offering;
 
 public interface OfferingRepository extends JpaRepository<Offering, Long> {
 	List<Offering> findAllByActiveTrueOrderByIdAsc();
+
+	long countByActiveTrue();
 }
