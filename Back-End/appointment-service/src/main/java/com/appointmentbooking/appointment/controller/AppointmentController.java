@@ -18,10 +18,12 @@ import com.appointmentbooking.appointment.dto.AppointmentResponse;
 import com.appointmentbooking.appointment.dto.CreateAppointmentRequest;
 import com.appointmentbooking.appointment.service.AppointmentService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/appointments")
+@SecurityRequirement(name = "bearerAuth")
 public class AppointmentController {
 	private final AppointmentService appointmentService;
 

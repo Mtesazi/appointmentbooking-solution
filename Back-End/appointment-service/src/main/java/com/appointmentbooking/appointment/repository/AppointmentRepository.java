@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.appointmentbooking.appointment.dto.AppointmentSummary;
+import com.appointmentbooking.appointment.dto.AdminAppointmentSummary;
 import com.appointmentbooking.appointment.entity.Appointment;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -27,6 +28,25 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 			""")
 	List<AppointmentSummary> findSummariesByCustomerId(@Param("customerId") Long customerId);
 
+	@Query("""
+			select new com.appointmentbooking.appointment.dto.AdminAppointmentSummary(
+				a.id, concat(c.firstName, concat(' ', c.lastName)), c.email, o.name, b.name,
+				a.appointmentDate, a.startTime, a.status)
+			from Appointment a
+			join Customer c on c.id = a.customerId
+			join Branch b on b.id = a.branchId
+			join Offering o on o.id = a.serviceId
+			order by a.appointmentDate desc, a.startTime desc
+			""")
+	List<AdminAppointmentSummary> findAdminAppointments();
+
+	@Query("""
+			select count(a) from Appointment a
+			where a.status = com.appointmentbooking.appointment.entity.Appointment.Status.CONFIRMED
+			  and (a.appointmentDate > :date or (a.appointmentDate = :date and a.startTime > :time))
+			""")
+	long countUpcoming(@Param("date") LocalDate date, @Param("time") LocalTime time);
+
 	Optional<Appointment> findByIdAndCustomerId(Long id, Long customerId);
 
 	@Modifying
@@ -38,6 +58,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 			""")
 	int completeExpiredAppointments(@Param("customerId") Long customerId,
 			@Param("date") LocalDate date, @Param("time") LocalTime time,
+			@Param("confirmedStatus") Appointment.Status confirmedStatus,
+			@Param("completedStatus") Appointment.Status completedStatus);
+
+	@Modifying
+	@Query("""
+			update Appointment a set a.status = :completedStatus
+			where a.status = :confirmedStatus
+			  and (a.appointmentDate < :date or (a.appointmentDate = :date and a.endTime <= :time))
+			""")
+	int completeAllExpiredAppointments(@Param("date") LocalDate date, @Param("time") LocalTime time,
 			@Param("confirmedStatus") Appointment.Status confirmedStatus,
 			@Param("completedStatus") Appointment.Status completedStatus);
 

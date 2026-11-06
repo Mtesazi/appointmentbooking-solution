@@ -2,6 +2,8 @@ package com.appointmentbooking.appointment.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -9,6 +11,7 @@ import jakarta.persistence.Table;
 @Table(name = "branches")
 public class Branch {
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@Column(nullable = false, unique = true, length = 120)
@@ -18,6 +21,11 @@ public class Branch {
 	private boolean active;
 
 	protected Branch() {
+	}
+
+	public Branch(String name, boolean active) {
+		this.name = name;
+		this.active = active;
 	}
 
 	public Long getId() {
@@ -30,5 +38,14 @@ public class Branch {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public void update(String name, boolean active) {
+		this.name = name;
+		this.active = active;
+	}
+
+	public void deactivate() {
+		this.active = false;
 	}
 }

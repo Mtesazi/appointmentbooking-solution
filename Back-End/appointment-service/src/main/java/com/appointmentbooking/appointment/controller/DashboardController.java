@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.appointmentbooking.appointment.dto.DashboardResponse;
 import com.appointmentbooking.appointment.service.DashboardService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api/customer")
+@SecurityRequirement(name = "bearerAuth")
 public class DashboardController {
 	private final DashboardService dashboardService;
 

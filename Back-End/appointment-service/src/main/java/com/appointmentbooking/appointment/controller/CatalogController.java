@@ -10,8 +10,11 @@ import com.appointmentbooking.appointment.dto.BranchResponse;
 import com.appointmentbooking.appointment.dto.ServiceResponse;
 import com.appointmentbooking.appointment.service.CatalogService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api")
+@SecurityRequirement(name = "bearerAuth")
 public class CatalogController {
 	private final CatalogService catalogService;
 
