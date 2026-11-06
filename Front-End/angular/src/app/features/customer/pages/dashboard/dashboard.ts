@@ -64,7 +64,9 @@ export class Dashboard implements OnInit {
   }
 
   signOut(): void {
-    this.auth.logout();
-    void this.router.navigate(['/login']);
+    this.auth.logout().subscribe({
+      complete: () => void this.router.navigate(['/login']),
+      error: () => void this.router.navigate(['/login'])
+    });
   }
 }

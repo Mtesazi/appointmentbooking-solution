@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   AdminAppointment,
   AdminAppointmentStatus
 } from '../../models/admin-appointment.model';
-import { AdminPreviewService } from '../../services/admin-preview.service';
+import { AdminDataService } from '../../services/admin-data.service';
+import { getApiErrorMessage } from '../../../../core/api-error';
 
 @Component({
   selector: 'app-admin-appointments',
@@ -14,12 +15,36 @@ import { AdminPreviewService } from '../../services/admin-preview.service';
   templateUrl: './admin-appointments.html',
   styleUrl: './admin-appointments.scss'
 })
-export class AdminAppointments {
-  private readonly preview = inject(AdminPreviewService);
-  private readonly appointments = this.preview.getAppointments();
+export class AdminAppointments implements OnInit {
+  private readonly adminData = inject(AdminDataService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  appointments: AdminAppointment[] = [];
 
   searchTerm = '';
   selectedStatus: 'ALL' | AdminAppointmentStatus = 'ALL';
+  loading = true;
+  errorMessage = '';
+
+  ngOnInit(): void {
+    this.loadAppointments();
+  }
+
+  loadAppointments(): void {
+    this.loading = true;
+    this.errorMessage = '';
+    this.adminData.getAppointments().subscribe({
+      next: appointments => {
+        this.appointments = appointments;
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.errorMessage = getApiErrorMessage(error);
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      }
+    });
+  }
 
   get filteredAppointments(): AdminAppointment[] {
     const query = this.searchTerm.trim().toLowerCase();

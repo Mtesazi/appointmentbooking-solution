@@ -39,7 +39,7 @@ export class Login {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
           ? returnUrl
-          : '/dashboard';
+          : this.auth.isAdmin ? '/admin/dashboard' : '/dashboard';
         void this.router.navigateByUrl(destination);
       },
       error: error => {

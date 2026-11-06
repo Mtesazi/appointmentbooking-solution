@@ -7,6 +7,11 @@
   <span class="record-count">{{ filteredAppointments.length }} shown</span>
 </header>
 
+@if (errorMessage) {
+  <p class="error-message" role="alert">{{ errorMessage }}</p>
+  <button type="button" class="primary-button" (click)="loadAppointments()">Try again</button>
+}
+
 <section class="appointments-panel">
   <div class="filters">
     <label class="search-field">
@@ -41,6 +46,11 @@
         </tr>
       </thead>
       <tbody>
+        @if (loading) {
+          <tr><td class="empty-state" colspan="5">Loading appointments…</td></tr>
+        } @else if (errorMessage && appointments.length === 0) {
+          <tr><td class="empty-state" colspan="5">Appointments could not be loaded.</td></tr>
+        } @else {
         @for (appointment of filteredAppointments; track appointment.id) {
           <tr>
             <td class="appointment-id">#{{ appointment.id }}</td>
@@ -65,9 +75,9 @@
             <td class="empty-state" colspan="5">No appointments match your search.</td>
           </tr>
         }
+        }
       </tbody>
     </table>
   </div>
 
-  <p class="table-footnote">Showing sample appointments. Changes and live data are not available in preview mode.</p>
 </section>

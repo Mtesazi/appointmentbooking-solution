@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminBranch } from '../../branch.model';
-import { BranchPreviewService } from '../../services/branch-preview.service';
+import { AdminDataService } from '../../../admin/services/admin-data.service';
+import { getApiErrorMessage } from '../../../../core/api-error';
 
 @Component({
   selector: 'app-admin-branches',
@@ -10,9 +11,14 @@ import { BranchPreviewService } from '../../services/branch-preview.service';
   templateUrl: './admin-branches.html',
   styleUrl: './admin-branches.scss'
 })
-export class AdminBranches {
-  private readonly preview = inject(BranchPreviewService);
+export class AdminBranches implements OnInit {
+  private readonly adminData = inject(AdminDataService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
+  branchList: AdminBranch[] = [];
+  loading = true;
+  errorMessage = '';
+  saving = false;
   searchTerm = '';
   selectedStatus: 'ALL' | 'ACTIVE' | 'INACTIVE' = 'ALL';
   isFormOpen = false;
@@ -22,8 +28,29 @@ export class AdminBranches {
   formError = '';
   announcement = '';
 
+  ngOnInit(): void {
+    this.loadBranches();
+  }
+
+  loadBranches(): void {
+    this.loading = true;
+    this.errorMessage = '';
+    this.adminData.getBranches().subscribe({
+      next: branches => {
+        this.branchList = branches;
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.errorMessage = getApiErrorMessage(error);
+        this.loading = false;
+        this.changeDetector.markForCheck();
+      }
+    });
+  }
+
   get branches(): AdminBranch[] {
-    return this.preview.getBranches();
+    return this.branchList;
   }
 
   get filteredBranches(): AdminBranch[] {
@@ -76,32 +103,52 @@ export class AdminBranches {
       return;
     }
 
-    if (this.editingId === null) {
-      this.preview.addBranch(name, this.branchActive);
-      this.announcement = `${name} added to the preview.`;
-    } else {
-      const updated = this.preview.updateBranch(this.editingId, name, this.branchActive);
-      if (!updated) {
-        this.formError = 'This branch is no longer available. Refresh the list and try again.';
-        return;
+    this.saving = true;
+    const request = { name, active: this.branchActive };
+    const saveRequest = this.editingId === null
+      ? this.adminData.createBranch(request)
+      : this.adminData.updateBranch(this.editingId, request);
+    saveRequest.subscribe({
+      next: savedBranch => {
+        if (this.editingId === null) {
+          this.branchList = [...this.branchList, savedBranch];
+          this.announcement = `${name} added.`;
+        } else {
+          this.branchList = this.branchList.map(branch =>
+            branch.id === savedBranch.id ? savedBranch : branch
+          );
+          this.announcement = `${name} updated.`;
+        }
+        this.saving = false;
+        this.closeForm();
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.formError = getApiErrorMessage(error);
+        this.saving = false;
+        this.changeDetector.markForCheck();
       }
-      this.announcement = `${name} updated in the preview.`;
-    }
-
-    this.closeForm();
+    });
   }
 
   deleteBranch(branch: AdminBranch): void {
-    if (!window.confirm(`Remove ${branch.name} from this preview?`)) {
+    if (!window.confirm(`Deactivate ${branch.name}? Existing appointments will be retained.`)) {
       return;
     }
 
-    if (!this.preview.deleteBranch(branch.id)) {
-      this.announcement = 'This branch is no longer available in the preview.';
-      return;
-    }
-
-    this.announcement = `${branch.name} removed from the preview.`;
+    this.adminData.deactivateBranch(branch.id).subscribe({
+      next: () => {
+        this.branchList = this.branchList.map(item =>
+          item.id === branch.id ? { ...item, active: false } : item
+        );
+        this.announcement = `${branch.name} deactivated.`;
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.errorMessage = getApiErrorMessage(error);
+        this.changeDetector.markForCheck();
+      }
+    });
   }
 
   trackBranch(_index: number, branch: AdminBranch): number {

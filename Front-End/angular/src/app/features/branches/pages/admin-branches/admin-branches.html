@@ -12,6 +12,11 @@
 
 <p class="sr-only" aria-live="polite">{{ announcement }}</p>
 
+@if (errorMessage) {
+  <p class="form-error" role="alert">{{ errorMessage }}</p>
+  <button type="button" class="primary-button" (click)="loadBranches()">Try again</button>
+}
+
 <section class="branch-panel" aria-label="Branch directory">
   <div class="filters">
     <label class="search-field">
@@ -35,6 +40,9 @@
   </div>
 
   <div class="branch-grid">
+    @if (loading) {
+      <p aria-live="polite">Loading branches…</p>
+    } @else {
     @for (branch of filteredBranches; track branch.id) {
       <article class="branch-card">
         <div class="branch-card-top">
@@ -51,7 +59,13 @@
 
         <div class="branch-actions">
           <button type="button" class="edit-button" (click)="openEditForm(branch)">Edit</button>
-          <button type="button" class="delete-button" (click)="deleteBranch(branch)">Remove</button>
+          <button
+            type="button"
+            class="delete-button"
+            [disabled]="!branch.active"
+            (click)="deleteBranch(branch)">
+            {{ branch.active ? 'Deactivate' : 'Inactive' }}
+          </button>
         </div>
       </article>
     } @empty {
@@ -61,9 +75,9 @@
         <p>Try changing your search or status filter.</p>
       </div>
     }
+    }
   </div>
 
-  <p class="panel-note">Preview only: changes are kept in memory and will reset when you reload the app.</p>
 </section>
 
 @if (isFormOpen) {
@@ -107,7 +121,7 @@
 
         <div class="dialog-actions">
           <button type="button" class="cancel-button" (click)="closeForm()">Cancel</button>
-          <button type="submit" class="primary-button" [disabled]="!branchForm.valid">
+          <button type="submit" class="primary-button" [disabled]="!branchForm.valid || saving">
             {{ editingId === null ? 'Add branch' : 'Save changes' }}
           </button>
         </div>
