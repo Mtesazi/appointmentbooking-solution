@@ -7,6 +7,8 @@ Appointment Booking is a full-stack application for customers to register, sign 
 ```text
 .
 ├── Back-End/
+│   ├── service-discovery/     Eureka service registry
+│   ├── api-gateway/           Spring Cloud API Gateway
 │   └── appointment-service/   Spring Boot REST API
 └── Front-End/
     └── angular/               Angular customer application
@@ -20,6 +22,7 @@ Appointment Booking is a full-stack application for customers to register, sign 
 - Browse available branches and services
 - Create, view, and cancel appointments
 - Role-protected admin dashboard, appointment list, and branch management backed by PostgreSQL
+- Eureka service discovery and Spring Cloud Gateway routing
 - PostgreSQL persistence with Flyway-managed database migrations
 
 ## Requirements
@@ -44,7 +47,23 @@ CREATE DATABASE appointment_booking OWNER "dev-user";
 
 Flyway creates the schema and seed catalog data from `Back-End/appointment-service/src/main/resources/db/migration` when the backend starts. The PostgreSQL setup starts with an empty database and does not import data from another database.
 
-### 2. Configure and run the backend
+### 2. Start service discovery and the gateway
+
+Start the registry first, then the gateway, each in a separate terminal:
+
+```bash
+cd Back-End/service-discovery
+../appointment-service/mvnw spring-boot:run
+```
+
+```bash
+cd Back-End/api-gateway
+../appointment-service/mvnw spring-boot:run
+```
+
+The Eureka dashboard is at `http://localhost:8761`. The gateway listens on `http://localhost:8080` and routes requests to the registered `appointment-service` instance.
+
+### 3. Configure and start the appointment API
 
 The backend reads these environment variables:
 
@@ -54,8 +73,9 @@ The backend reads these environment variables:
 | `SPRING_DATASOURCE_USERNAME` | No | `dev-user` |
 | `SPRING_DATASOURCE_PASSWORD` | Yes | The password configured for the PostgreSQL user |
 | `JWT_SECRET` | Yes | A randomly generated secret of at least 32 bytes |
+| `EUREKA_SERVER_URL` | No | `http://localhost:8761/eureka/` |
 
-Set the variables in your shell or IDE run configuration. For example, in a Bash terminal:
+Set the variables in a third terminal and start the appointment API:
 
 ```bash
 export SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/appointment_booking'
@@ -69,20 +89,19 @@ cd Back-End/appointment-service
 
 Spring Boot does not load a `.env` file automatically when launched with Maven. Do not commit `.env` files or real credentials.
 
-The API runs at `http://localhost:8082/api`. The health endpoint is `http://localhost:8082/actuator/health`.
-Swagger UI is available at `http://localhost:8082/swagger-ui/index.html`, and the OpenAPI specification is at `http://localhost:8082/v3/api-docs`. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
+The appointment service remains directly available on port `8082` for local diagnostics. Use `http://localhost:8080/api` for API requests through the gateway. Swagger UI is available through the gateway at `http://localhost:8080/swagger-ui/index.html`; the OpenAPI specification is at `http://localhost:8080/v3/api-docs`. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
 
-### 3. Run the frontend
+### 4. Run the frontend
 
-In another terminal:
+After configuring the database password and JWT secret above, you can start all services in order from the project root:
 
 ```bash
-cd Front-End/angular
-npm install
-npm start
+./run-local.sh
 ```
 
-Open `http://localhost:4200`. The development frontend is configured to call the backend at `http://localhost:8082/api` in `src/environments/environment.ts`.
+The script builds the backend applications, starts Eureka, the gateway, and appointment API in order, waits for service readiness and registration, then runs the Angular frontend. Stop it with `Ctrl+C`; it will stop the services it launched. Run `npm install` once in `Front-End/angular` if frontend dependencies are missing.
+
+Open `http://localhost:4200`. The development frontend calls the API gateway at `http://localhost:8080/api` in `src/environments/environment.ts`.
 
 The admin UI is available at `http://localhost:4200/admin`. Its dashboard, appointment list, and branch management use the backend database and require an account with the `ADMIN` role. New registrations always receive the `CUSTOMER` role.
 
