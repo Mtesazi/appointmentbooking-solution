@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest } from './auth.model';
 
 const tokenStorageKey = 'appointment-booking-access-token';
+const roleStorageKey = 'appointment-booking-user-role';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -13,6 +14,15 @@ export class AuthService {
 
   get isAuthenticated(): boolean {
     return sessionStorage.getItem(tokenStorageKey) !== null;
+  }
+
+  get role(): 'CUSTOMER' | 'ADMIN' | null {
+    const role = sessionStorage.getItem(roleStorageKey);
+    return role === 'CUSTOMER' || role === 'ADMIN' ? role : null;
+  }
+
+  get isAdmin(): boolean {
+    return this.role === 'ADMIN';
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
@@ -25,11 +35,17 @@ export class AuthService {
       .pipe(tap(response => this.storeToken(response)));
   }
 
-  logout(): void {
-    sessionStorage.removeItem(tokenStorageKey);
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.authUrl}/logout`, {}).pipe(
+      finalize(() => {
+        sessionStorage.removeItem(tokenStorageKey);
+        sessionStorage.removeItem(roleStorageKey);
+      })
+    );
   }
 
   private storeToken(response: AuthResponse): void {
     sessionStorage.setItem(tokenStorageKey, response.accessToken);
+    sessionStorage.setItem(roleStorageKey, response.customer.role);
   }
 }

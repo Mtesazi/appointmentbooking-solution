@@ -4,6 +4,7 @@ export interface Customer {
   lastName: string;
   email: string;
   phone: string;
+  role: 'CUSTOMER' | 'ADMIN';
 }
 
 export interface AuthResponse {

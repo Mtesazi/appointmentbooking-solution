@@ -24,17 +24,13 @@
       </a>
     </nav>
 
-    <div class="sidebar-note">
-      <span class="online-dot"></span>
-      Admin preview
-    </div>
+    <button class="logout-button" type="button" (click)="signOut()">
+      <span aria-hidden="true">↪</span>
+      Sign out
+    </button>
   </aside>
 
   <div class="admin-main">
-    <div class="preview-banner" role="status">
-      <strong>Preview mode</strong>
-      <span>This screen uses sample data. Admin sign-in and live management will be connected when the backend is ready.</span>
-    </div>
     <router-outlet />
   </div>
 </div>

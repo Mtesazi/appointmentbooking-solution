@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth.guard';
+import { authGuard, roleGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -21,34 +21,35 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard('CUSTOMER')],
     loadComponent: () =>
       import('./features/customer/pages/dashboard/dashboard')
         .then(m => m.Dashboard)
   },
   {
     path: 'customer/book-appointment',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard('CUSTOMER')],
     loadComponent: () =>
       import('./features/appointments/pages/book-appointment/book-appointment')
         .then(m => m.BookAppointment)
   },
   {
     path: 'customer/booking-confirmation',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard('CUSTOMER')],
     loadComponent: () =>
       import('./features/appointments/pages/booking-confirmation/booking-confirmation')
         .then(m => m.BookingConfirmation)
   },
   {
     path: 'customer/my-appointments',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard('CUSTOMER')],
     loadComponent: () =>
       import('./features/appointments/pages/my-appointments/my-appointments')
         .then(m => m.MyAppointments)
   },
   {
     path: 'admin',
+    canActivate: [authGuard, roleGuard('ADMIN')],
     loadComponent: () =>
       import('./features/admin/layout/admin-layout/admin-layout')
         .then(m => m.AdminLayout),
