@@ -98,6 +98,21 @@ cd Back-End/appointment-service
 
 Spring Boot does not load a `.env` file automatically when launched with Maven. Do not commit `.env` files or real credentials.
 
+Appointment emails are queued in PostgreSQL in the same transaction as the booking change, then sent by the appointment service through SMTP. Booking, rescheduling, and customer- or admin-initiated cancellation send confirmation emails; reminders are not included. Email delivery is disabled by default for local development. To enable it in a deployment, configure these environment variables:
+
+| Variable | Required when enabled | Example |
+|---|---|---|
+| `EMAIL_NOTIFICATIONS_ENABLED` | Yes | `true` |
+| `EMAIL_FROM` | Yes | `appointments@example.com` |
+| `MAIL_HOST` | Yes | SMTP provider hostname |
+| `MAIL_PORT` | Yes | `587` |
+| `MAIL_USERNAME` | Provider-dependent | SMTP account username |
+| `MAIL_PASSWORD` | Provider-dependent | SMTP account password |
+| `MAIL_SMTP_AUTH` | Provider-dependent | `true` |
+| `MAIL_SMTP_STARTTLS` | Provider-dependent | `true` |
+
+Keep SMTP credentials in the deployment secret manager. Failed sends are retried with exponential backoff; after ten failures a message is marked `DEAD` in `email_outbox` and requires operational review. The outbox provides durable, at-least-once delivery: a process interruption after the SMTP server accepts a message but before the database records success can result in a duplicate email.
+
 The appointment service remains directly available on port `8082` for local diagnostics. Use `http://localhost:8080/api` for API requests through the gateway. Swagger UI is available through the gateway at `http://localhost:8080/swagger-ui/index.html`; the OpenAPI specification is at `http://localhost:8080/v3/api-docs`. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
 
 ### 4. Run the frontend

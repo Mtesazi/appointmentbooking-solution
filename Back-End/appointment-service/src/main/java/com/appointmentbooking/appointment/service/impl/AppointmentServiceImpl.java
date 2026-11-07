@@ -25,6 +25,8 @@ import com.appointmentbooking.appointment.repository.AppointmentRepository;
 import com.appointmentbooking.appointment.repository.BranchRepository;
 import com.appointmentbooking.appointment.repository.OfferingRepository;
 import com.appointmentbooking.appointment.service.AppointmentService;
+import com.appointmentbooking.appointment.service.AppointmentEmailNotificationService;
+import com.appointmentbooking.appointment.service.AppointmentEmailNotificationService.Event;
 import com.appointmentbooking.appointment.service.BranchHoursService;
 import com.appointmentbooking.appointment.service.BranchHoursService.Hours;
 
@@ -36,14 +38,17 @@ public class AppointmentServiceImpl implements AppointmentService {
 	private final OfferingRepository offeringRepository;
 	private final AppointmentMapper appointmentMapper;
 	private final BranchHoursService branchHours;
+	private final AppointmentEmailNotificationService emailNotifications;
 
 	public AppointmentServiceImpl(AppointmentRepository appointmentRepository, BranchRepository branchRepository,
-			OfferingRepository offeringRepository, AppointmentMapper appointmentMapper, BranchHoursService branchHours) {
+			OfferingRepository offeringRepository, AppointmentMapper appointmentMapper, BranchHoursService branchHours,
+			AppointmentEmailNotificationService emailNotifications) {
 		this.appointmentRepository = appointmentRepository;
 		this.branchRepository = branchRepository;
 		this.offeringRepository = offeringRepository;
 		this.appointmentMapper = appointmentMapper;
 		this.branchHours = branchHours;
+		this.emailNotifications = emailNotifications;
 	}
 
 	@Override
@@ -112,6 +117,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 		}
 		appointment.reschedule(request.appointmentDate(), start, end);
 		appointmentRepository.flush();
+		emailNotifications.queue(appointment, Event.RESCHEDULED);
 		return appointmentMapper.toResponse(appointment, branch, offering);
 	}
 
@@ -143,6 +149,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 		Appointment appointment = appointmentRepository.save(new Appointment(customerId, branch.getId(),
 				offering.getId(), request.appointmentDate(), startTime, endTime, request.notes()));
+		emailNotifications.queue(appointment, Event.BOOKED);
 		return appointmentMapper.toResponse(appointment, branch, offering);
 	}
 
@@ -184,6 +191,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 		} catch (IllegalStateException exception) {
 			throw new ConflictException(exception.getMessage());
 		}
+		emailNotifications.queue(appointment, Event.CANCELLED);
 	}
 
 	private AppointmentResponse toResponse(Appointment appointment) {
