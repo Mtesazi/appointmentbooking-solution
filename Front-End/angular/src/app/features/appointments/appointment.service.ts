@@ -26,6 +26,21 @@ export class AppointmentService {
     return this.http.get<AppointmentServiceOption[]>(`${this.apiUrl}/services`);
   }
 
+  getAvailableTimes(branchId: number, serviceId: number, date: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/appointments/availability`, {
+      params: { branchId, serviceId, date }
+    });
+  }
+
+  getRescheduleAvailableTimes(id: number, date: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/appointments/${id}/availability`, { params: { date } });
+  }
+
+  rescheduleAppointment(id: number, appointmentDate: string, time: string): Observable<Appointment> {
+    return this.http.patch<Appointment>(`${this.apiUrl}/appointments/${id}/reschedule`, { appointmentDate, time })
+      .pipe(tap(appointment => this.updateStoredAppointment(appointment)));
+  }
+
   getAppointments(): Observable<Appointment[]> {
     return this.http.get<Appointment[]>(`${this.apiUrl}/appointments`).pipe(
       timeout({ first: 15000 }),
@@ -47,14 +62,19 @@ export class AppointmentService {
 
   cancelAppointment(id: number): Observable<Appointment> {
     return this.http.patch<Appointment>(`${this.apiUrl}/appointments/${id}/cancel`, {}).pipe(
-      tap(updatedAppointment => {
-        if (this.cachedAppointments) {
-          this.cachedAppointments = this.cachedAppointments.map(appointment =>
-            appointment.id === updatedAppointment.id ? updatedAppointment : appointment
-          );
-        }
-      })
+      tap(appointment => this.updateStoredAppointment(appointment))
     );
+  }
+
+  private updateStoredAppointment(updated: Appointment): void {
+    if (this.cachedAppointments) {
+      this.cachedAppointments = this.cachedAppointments.map(appointment =>
+        appointment.id === updated.id ? updated : appointment
+      );
+    }
+    if (this.getBookingConfirmation()?.id === updated.id) {
+      sessionStorage.setItem(this.confirmationStorageKey, JSON.stringify(updated));
+    }
   }
 
   getDashboard(): Observable<Dashboard> {

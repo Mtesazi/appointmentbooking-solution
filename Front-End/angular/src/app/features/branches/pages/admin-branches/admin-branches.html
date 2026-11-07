@@ -59,6 +59,7 @@
 
         <div class="branch-actions">
           <button type="button" class="edit-button" (click)="openEditForm(branch)">Edit</button>
+          <button type="button" class="edit-button" (click)="openHours(branch)">Opening hours</button>
           <button
             type="button"
             class="delete-button"
@@ -79,6 +80,46 @@
   </div>
 
 </section>
+
+@if (hoursBranch; as branch) {
+  <div class="modal-backdrop">
+    <section class="branch-dialog hours-dialog" role="dialog" aria-modal="true" aria-labelledby="hours-title">
+      <div class="dialog-heading">
+        <h2 id="hours-title">Opening hours — {{ branch.name }}</h2>
+        <button type="button" class="close-button" aria-label="Close" [disabled]="hoursSaving" (click)="closeHours()">×</button>
+      </div>
+      <p>One opening period per day. Changing hours cannot displace existing future appointments.</p>
+      @if (hoursLoading) {
+        <p aria-live="polite">Loading opening hours…</p>
+      } @else if (hoursError) {
+        <p class="form-error" role="alert">{{ hoursError }}</p>
+        @if (hours.length === 0) {
+          <button type="button" (click)="openHours(branch)">Try again</button>
+        }
+      }
+      @if (hours.length) {
+        <form (ngSubmit)="saveHours()">
+          @for (day of hours; track day.dayOfWeek) {
+            <div class="hours-row">
+              <label><input type="checkbox" [name]="'closed' + day.dayOfWeek" [(ngModel)]="day.closed"
+                [disabled]="hoursSaving"> {{ weekdays[day.dayOfWeek - 1] }} closed</label>
+              <label>Open <input type="time" [name]="'open' + day.dayOfWeek" [(ngModel)]="day.openTime"
+                [disabled]="day.closed || hoursSaving" [required]="!day.closed"></label>
+              <label>Close <input type="time" [name]="'close' + day.dayOfWeek" [(ngModel)]="day.closeTime"
+                [disabled]="day.closed || hoursSaving" [required]="!day.closed"></label>
+            </div>
+          }
+          <div class="dialog-actions">
+            <button type="button" class="cancel-button" (click)="closeHours()" [disabled]="hoursSaving">Cancel</button>
+            <button type="submit" class="primary-button" [disabled]="hoursSaving">
+              {{ hoursSaving ? 'Saving…' : 'Save hours' }}
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  </div>
+}
 
 @if (isFormOpen) {
   <div class="modal-backdrop" (click)="closeForm()">

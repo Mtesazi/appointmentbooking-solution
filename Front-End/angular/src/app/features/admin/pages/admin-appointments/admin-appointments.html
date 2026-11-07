@@ -12,6 +12,26 @@
   <button type="button" class="primary-button" (click)="loadAppointments()">Try again</button>
 }
 
+@if (successMessage) {
+  <p role="status">{{ successMessage }}</p>
+}
+@if (pendingCancellation; as appointment) {
+  <section class="confirmation" aria-label="Confirm cancellation">
+    <p>Cancel appointment #{{ appointment.id }} for {{ appointment.customerName }}
+      on {{ appointment.date | date:'dd MMM yyyy' }} at {{ appointment.time }}?</p>
+    <p>Confirmed appointments can only be cancelled before their scheduled start time.</p>
+    @if (cancellationError) {
+      <p class="error-message" role="alert">{{ cancellationError }}</p>
+    }
+    <button type="button" class="cancel-button" (click)="cancelAppointment()" [disabled]="cancellingId !== null">
+      {{ cancellingId === appointment.id ? 'Cancelling…' : 'Confirm cancellation' }}
+    </button>
+    <button type="button" class="keep-button" (click)="dismissCancellation()" [disabled]="cancellingId !== null">
+      Keep appointment
+    </button>
+  </section>
+}
+
 <section class="appointments-panel">
   <div class="filters">
     <label class="search-field">
@@ -43,13 +63,14 @@
           <th>Service &amp; branch</th>
           <th>Date &amp; time</th>
           <th>Status</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
         @if (loading) {
-          <tr><td class="empty-state" colspan="5">Loading appointments…</td></tr>
+          <tr><td class="empty-state" colspan="6">Loading appointments…</td></tr>
         } @else if (errorMessage && appointments.length === 0) {
-          <tr><td class="empty-state" colspan="5">Appointments could not be loaded.</td></tr>
+          <tr><td class="empty-state" colspan="6">Appointments could not be loaded.</td></tr>
         } @else {
         @for (appointment of filteredAppointments; track appointment.id) {
           <tr>
@@ -69,10 +90,18 @@
             <td>
               <span class="status" [class]="'status ' + appointment.status.toLowerCase()">{{ appointment.status }}</span>
             </td>
+            <td>
+              @if (appointment.status === 'CONFIRMED') {
+                <button type="button" class="cancel-button" (click)="confirmCancellation(appointment)"
+                  [disabled]="cancellingId !== null" [attr.aria-label]="'Cancel appointment ' + appointment.id">
+                  Cancel
+                </button>
+              }
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td class="empty-state" colspan="5">No appointments match your search.</td>
+            <td class="empty-state" colspan="6">No appointments match your search.</td>
           </tr>
         }
         }

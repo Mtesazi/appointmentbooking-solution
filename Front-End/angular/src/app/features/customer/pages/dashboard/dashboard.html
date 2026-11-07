@@ -17,6 +17,11 @@
         Book Appointment
       </a>
 
+      <a class="nav-item" routerLink="/customer/profile">
+        <span>○</span>
+        My Profile
+      </a>
+
     </nav>
 
     <div class="sidebar-footer">
@@ -34,10 +39,6 @@
       <p class="error-message" role="alert">{{ errorMessage }}</p>
     }
 
-    @if (loading) {
-      <p aria-live="polite">Loading your dashboard…</p>
-    }
-
     <header class="topbar">
       <div>
         <h2>Customer Dashboard</h2>
@@ -52,7 +53,7 @@
 
     <section class="welcome-section">
       <div>
-        <h1>Welcome back, {{ customerName }}!</h1>
+        <h1>Welcome back{{ customerName ? ', ' + customerName : '' }}!</h1>
         <p>Here's an overview of your appointments.</p>
       </div>
     </section>

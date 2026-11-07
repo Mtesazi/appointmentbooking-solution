@@ -18,7 +18,7 @@ export class Dashboard implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  customerName = '';
+  customerName = this.auth.firstName;
   upcomingAppointments = 0;
   completedAppointments = 0;
   cancelledAppointments = 0;

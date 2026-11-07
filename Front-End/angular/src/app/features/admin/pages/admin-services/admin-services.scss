@@ -1,0 +1,77 @@
+.page-header, article {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+h1, h2 {
+  color: #172b45;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+p {
+  color: #63758b;
+}
+
+button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #356fbd;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.service-form, .service-list {
+  padding: 20px;
+  margin-top: 20px;
+  background: white;
+  border: 1px solid #e8edf3;
+  border-radius: 10px;
+}
+
+label:not(.active-toggle) {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+
+input:not([type='checkbox']) {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dfe6ee;
+  border-radius: 6px;
+}
+
+.active-toggle {
+  display: block;
+  margin-top: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+article {
+  border-bottom: 1px solid #e8edf3;
+}
+
+article:last-child {
+  border: 0;
+}
+
+.error {
+  color: #b42318;
+}

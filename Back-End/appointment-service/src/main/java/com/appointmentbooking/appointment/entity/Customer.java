@@ -77,4 +77,10 @@ public class Customer {
 	public String getPasswordHash() {
 		return passwordHash;
 	}
+
+	public void updateProfile(String firstName, String lastName, String phone) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.phone = phone;
+	}
 }

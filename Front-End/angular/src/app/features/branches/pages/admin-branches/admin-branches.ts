@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminBranch } from '../../branch.model';
-import { AdminDataService } from '../../../admin/services/admin-data.service';
+import { AdminDataService, BranchDayHours } from '../../../admin/services/admin-data.service';
 import { getApiErrorMessage } from '../../../../core/api-error';
 
 @Component({
@@ -27,9 +27,76 @@ export class AdminBranches implements OnInit {
   branchActive = true;
   formError = '';
   announcement = '';
+  hoursBranch: AdminBranch | null = null;
+  hours: BranchDayHours[] = [];
+  hoursLoading = false;
+  hoursSaving = false;
+  hoursError = '';
+  readonly weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  private hoursRequestId = 0;
 
   ngOnInit(): void {
     this.loadBranches();
+  }
+
+  openHours(branch: AdminBranch): void {
+    this.hoursBranch = branch;
+    this.hours = [];
+    this.hoursError = '';
+    this.hoursLoading = true;
+    const requestId = ++this.hoursRequestId;
+    this.adminData.getBranchHours(branch.id).subscribe({
+      next: hours => {
+        if (requestId !== this.hoursRequestId) {
+          return;
+        }
+        this.hours = hours;
+        this.hoursLoading = false;
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        if (requestId !== this.hoursRequestId) {
+          return;
+        }
+        this.hoursError = getApiErrorMessage(error);
+        this.hoursLoading = false;
+        this.changeDetector.markForCheck();
+      }
+    });
+  }
+
+  closeHours(): void {
+    if (!this.hoursSaving) {
+      this.hoursRequestId++;
+      this.hoursBranch = null;
+    }
+  }
+
+  saveHours(): void {
+    if (!this.hoursBranch || this.hoursSaving) {
+      return;
+    }
+    if (this.hours.some(day => !day.closed && (!day.openTime || !day.closeTime || day.openTime >= day.closeTime))) {
+      this.hoursError = 'For every open day, enter a closing time later than the opening time.';
+      return;
+    }
+    const days = this.hours.map(day => day.closed ? { ...day, openTime: null, closeTime: null } : day);
+    this.hoursSaving = true;
+    this.hoursError = '';
+    const branch = this.hoursBranch;
+    this.adminData.saveBranchHours(branch.id, days).subscribe({
+      next: () => {
+        this.hoursSaving = false;
+        this.hoursBranch = null;
+        this.announcement = `${branch.name} opening hours updated.`;
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.hoursSaving = false;
+        this.hoursError = getApiErrorMessage(error);
+        this.changeDetector.markForCheck();
+      }
+    });
   }
 
   loadBranches(): void {

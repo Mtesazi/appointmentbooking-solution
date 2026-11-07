@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.appointmentbooking.appointment.dto.AdminBranchResponse;
 import com.appointmentbooking.appointment.dto.SaveBranchRequest;
+import com.appointmentbooking.appointment.dto.BranchHoursRequest;
 import com.appointmentbooking.appointment.service.AdminBranchService;
+import com.appointmentbooking.appointment.service.BranchHoursService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -25,9 +27,21 @@ import jakarta.validation.Valid;
 @SecurityRequirement(name = "bearerAuth")
 public class AdminBranchController {
 	private final AdminBranchService adminBranchService;
+	private final BranchHoursService hoursService;
 
-	public AdminBranchController(AdminBranchService adminBranchService) {
+	public AdminBranchController(AdminBranchService adminBranchService, BranchHoursService hoursService) {
 		this.adminBranchService = adminBranchService;
+		this.hoursService = hoursService;
+	}
+
+	@GetMapping("/{id}/hours")
+	public List<BranchHoursRequest.Day> getHours(@PathVariable Long id) {
+		return hoursService.getSchedule(id);
+	}
+
+	@PutMapping("/{id}/hours")
+	public List<BranchHoursRequest.Day> updateHours(@PathVariable Long id, @Valid @RequestBody BranchHoursRequest request) {
+		return hoursService.updateSchedule(id, request);
 	}
 
 	@GetMapping

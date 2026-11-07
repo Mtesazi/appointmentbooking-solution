@@ -26,3 +26,9 @@ export interface LoginRequest {
   email: string;
   password: string;
 }
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}

@@ -126,4 +126,13 @@ public class Appointment {
 		}
 		status = Status.CANCELLED;
 	}
+
+	public void reschedule(LocalDate date, LocalTime start, LocalTime end) {
+		if (status != Status.CONFIRMED) {
+			throw new IllegalStateException("Only confirmed appointments can be rescheduled");
+		}
+		appointmentDate = date;
+		startTime = start;
+		endTime = end;
+	}
 }
