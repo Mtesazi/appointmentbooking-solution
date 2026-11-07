@@ -1,0 +1,45 @@
+<main class="profile-page">
+  <a routerLink="/dashboard">← Dashboard</a>
+  <h1>My Profile</h1>
+  <p>Update your contact details. Your email address cannot be changed here.</p>
+
+  @if (loading) {
+    <p aria-live="polite">Loading profile…</p>
+  }
+  @if (errorMessage) {
+    <p class="error" role="alert">{{ errorMessage }}</p>
+    @if (!loaded && !loading) {
+      <button type="button" (click)="loadProfile()">Try again</button>
+    }
+  }
+  @if (successMessage) {
+    <p class="success" role="status">{{ successMessage }}</p>
+  }
+
+  @if (loaded) {
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <label for="profile-email">Email</label>
+      <input id="profile-email" [value]="email" readonly>
+
+      <label for="profile-first-name">First name</label>
+      <input id="profile-first-name" formControlName="firstName" autocomplete="given-name" maxlength="80">
+      @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+        <p class="error">Enter a first name with at least two non-space characters.</p>
+      }
+
+      <label for="profile-last-name">Last name</label>
+      <input id="profile-last-name" formControlName="lastName" autocomplete="family-name" maxlength="80">
+      @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+        <p class="error">Enter a last name with at least two non-space characters.</p>
+      }
+
+      <label for="profile-phone">Phone</label>
+      <input id="profile-phone" formControlName="phone" type="tel" autocomplete="tel" maxlength="30">
+      @if (form.controls.phone.touched && form.controls.phone.invalid) {
+        <p class="error">Enter a phone number using 7–30 digits, spaces, or + ( ) -.</p>
+      }
+
+      <button type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Save changes' }}</button>
+    </form>
+  }
+</main>

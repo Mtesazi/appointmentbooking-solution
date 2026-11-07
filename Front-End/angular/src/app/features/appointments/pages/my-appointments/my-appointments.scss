@@ -86,6 +86,30 @@
   background: white;
 }
 
+.reschedule-panel {
+  padding: 20px;
+  border: 1px solid #cbd5e2;
+  border-radius: 10px;
+  background: white;
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin: 12px 0 6px;
+  }
+
+  input, select {
+    padding: 8px;
+    max-width: 100%;
+  }
+}
+
+.reschedule-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
 .date-block {
   min-width: 64px;
   padding: 12px;

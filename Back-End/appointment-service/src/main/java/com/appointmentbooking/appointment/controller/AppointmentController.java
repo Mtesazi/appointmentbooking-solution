@@ -1,6 +1,7 @@
 package com.appointmentbooking.appointment.controller;
 
 import java.util.List;
+import java.time.LocalDate;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,11 +12,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.appointmentbooking.appointment.dto.AppointmentResponse;
 import com.appointmentbooking.appointment.dto.CreateAppointmentRequest;
+import com.appointmentbooking.appointment.dto.RescheduleAppointmentRequest;
 import com.appointmentbooking.appointment.service.AppointmentService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +32,24 @@ public class AppointmentController {
 
 	public AppointmentController(AppointmentService appointmentService) {
 		this.appointmentService = appointmentService;
+	}
+
+	@GetMapping("/availability")
+	public List<String> getAvailability(@RequestParam Long branchId, @RequestParam Long serviceId,
+			@RequestParam LocalDate date) {
+		return appointmentService.getAvailableTimes(branchId, serviceId, date);
+	}
+
+	@GetMapping("/{appointmentId}/availability")
+	public List<String> getRescheduleAvailability(@AuthenticationPrincipal Jwt jwt, @PathVariable Long appointmentId,
+			@RequestParam LocalDate date) {
+		return appointmentService.getRescheduleAvailableTimes(customerId(jwt), appointmentId, date);
+	}
+
+	@PatchMapping("/{appointmentId}/reschedule")
+	public AppointmentResponse reschedule(@AuthenticationPrincipal Jwt jwt, @PathVariable Long appointmentId,
+			@Valid @RequestBody RescheduleAppointmentRequest request) {
+		return appointmentService.reschedule(customerId(jwt), appointmentId, request);
 	}
 
 	@PostMapping

@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest } from './auth.model';
+import { AuthResponse, Customer, LoginRequest, RegisterRequest, UpdateProfileRequest } from './auth.model';
 
 const tokenStorageKey = 'appointment-booking-access-token';
 const roleStorageKey = 'appointment-booking-user-role';
+const firstNameStorageKey = 'appointment-booking-first-name';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,6 +26,10 @@ export class AuthService {
     return this.role === 'ADMIN';
   }
 
+  get firstName(): string {
+    return this.isAuthenticated ? sessionStorage.getItem(firstNameStorageKey) ?? '' : '';
+  }
+
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.authUrl}/login`, request)
       .pipe(tap(response => this.storeToken(response)));
@@ -35,11 +40,22 @@ export class AuthService {
       .pipe(tap(response => this.storeToken(response)));
   }
 
+  getProfile(): Observable<Customer> {
+    return this.http.get<Customer>(`${environment.apiUrl}/customer/profile`);
+  }
+
+  updateProfile(request: UpdateProfileRequest): Observable<Customer> {
+    return this.http.put<Customer>(`${environment.apiUrl}/customer/profile`, request).pipe(
+      tap(customer => sessionStorage.setItem(firstNameStorageKey, customer.firstName))
+    );
+  }
+
   logout(): Observable<void> {
     return this.http.post<void>(`${this.authUrl}/logout`, {}).pipe(
       finalize(() => {
         sessionStorage.removeItem(tokenStorageKey);
         sessionStorage.removeItem(roleStorageKey);
+        sessionStorage.removeItem(firstNameStorageKey);
       })
     );
   }
@@ -47,5 +63,6 @@ export class AuthService {
   private storeToken(response: AuthResponse): void {
     sessionStorage.setItem(tokenStorageKey, response.accessToken);
     sessionStorage.setItem(roleStorageKey, response.customer.role);
+    sessionStorage.setItem(firstNameStorageKey, response.customer.firstName);
   }
 }

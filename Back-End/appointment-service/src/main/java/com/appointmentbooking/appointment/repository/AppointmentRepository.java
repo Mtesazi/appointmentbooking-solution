@@ -7,12 +7,14 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.appointmentbooking.appointment.dto.AppointmentSummary;
 import com.appointmentbooking.appointment.dto.AdminAppointmentSummary;
 import com.appointmentbooking.appointment.entity.Appointment;
+import jakarta.persistence.LockModeType;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 	List<Appointment> findAllByCustomerIdOrderByAppointmentDateDescStartTimeDesc(Long customerId);
@@ -49,6 +51,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 	Optional<Appointment> findByIdAndCustomerId(Long id, Long customerId);
 
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("select a from Appointment a where a.id = :id and a.customerId = :customerId")
+	Optional<Appointment> findByIdAndCustomerIdForUpdate(@Param("id") Long id, @Param("customerId") Long customerId);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("select a from Appointment a where a.id = :id")
+	Optional<Appointment> findByIdForUpdate(@Param("id") Long id);
+
+	List<Appointment> findAllByBranchIdAndAppointmentDateAndStatus(Long branchId, LocalDate appointmentDate,
+			Appointment.Status status);
+
 	@Modifying
 	@Query("""
 			update Appointment a set a.status = :completedStatus
@@ -84,4 +97,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 			@Param("startTime") LocalTime startTime,
 			@Param("endTime") LocalTime endTime,
 			@Param("status") Appointment.Status status);
+
+	@Query("""
+			select (count(a) > 0) from Appointment a
+			where a.branchId = :branchId and a.appointmentDate = :date and a.status = :status
+			  and a.id <> :appointmentId and a.startTime < :endTime and a.endTime > :startTime
+			""")
+	boolean existsOverlappingOtherAppointment(@Param("branchId") Long branchId, @Param("date") LocalDate date,
+			@Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime,
+			@Param("status") Appointment.Status status, @Param("appointmentId") Long appointmentId);
 }

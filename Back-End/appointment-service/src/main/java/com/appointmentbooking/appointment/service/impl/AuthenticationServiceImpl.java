@@ -10,6 +10,7 @@ import com.appointmentbooking.appointment.dto.AuthResponse;
 import com.appointmentbooking.appointment.dto.CustomerResponse;
 import com.appointmentbooking.appointment.dto.LoginRequest;
 import com.appointmentbooking.appointment.dto.RegisterRequest;
+import com.appointmentbooking.appointment.dto.UpdateProfileRequest;
 import com.appointmentbooking.appointment.entity.Customer;
 import com.appointmentbooking.appointment.exception.ConflictException;
 import com.appointmentbooking.appointment.exception.ResourceNotFoundException;
@@ -64,6 +65,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	public CustomerResponse getCustomer(Long customerId) {
 		Customer customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+		return customerMapper.toResponse(customer);
+	}
+
+	@Override
+	@Transactional
+	public CustomerResponse updateProfile(Long customerId, UpdateProfileRequest request) {
+		Customer customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+		customer.updateProfile(request.firstName().trim(), request.lastName().trim(), request.phone().trim());
 		return customerMapper.toResponse(customer);
 	}
 

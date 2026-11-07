@@ -1,0 +1,56 @@
+<header class="page-header">
+  <div>
+    <h1>Services</h1>
+    <p>Manage services and their duration for customer bookings.</p>
+  </div>
+  <button type="button" (click)="edit()" [disabled]="saving">Add service</button>
+</header>
+
+@if (announcement) {
+  <p role="status">{{ announcement }}</p>
+}
+@if (errorMessage) {
+  <p class="error" role="alert">{{ errorMessage }}</p>
+  <button type="button" (click)="load()">Try again</button>
+}
+
+@if (editing) {
+  <section class="service-form" aria-labelledby="service-form-title">
+    <h2 id="service-form-title">{{ editingId === null ? 'Add service' : 'Edit service' }}</h2>
+    <p>Existing bookings keep their duration. New bookings and rescheduling use the current duration.</p>
+    <form (ngSubmit)="save()">
+      <label for="service-name">Service name</label>
+      <input id="service-name" name="name" [(ngModel)]="name" maxlength="120" [disabled]="saving">
+      <label for="service-duration">Duration in minutes</label>
+      <input id="service-duration" name="duration" type="number" min="1" max="1440" step="1"
+        [(ngModel)]="durationMinutes" [disabled]="saving">
+      <label class="active-toggle"><input type="checkbox" name="active" [(ngModel)]="active" [disabled]="saving">
+        Available for new bookings</label>
+      @if (formError) {
+        <p class="error" role="alert">{{ formError }}</p>
+      }
+      <div class="actions">
+        <button type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Save service' }}</button>
+        <button type="button" (click)="close()" [disabled]="saving">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="service-list" aria-label="Services">
+  @if (loading) {
+    <p aria-live="polite">Loading services…</p>
+  } @else if (services.length === 0 && !errorMessage) {
+    <p>No services yet.</p>
+  }
+  @for (service of services; track service.id) {
+    <article>
+      <div>
+        <h2>{{ service.name }}</h2>
+        <p>{{ service.durationMinutes }} minutes · {{ service.active ? 'Active' : 'Inactive' }}</p>
+      </div>
+      <button type="button" (click)="edit(service)" [disabled]="saving"
+        [attr.aria-label]="'Edit ' + service.name">Edit</button>
+    </article>
+  }
+</section>

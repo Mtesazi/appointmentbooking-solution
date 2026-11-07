@@ -27,6 +27,13 @@ export const routes: Routes = [
         .then(m => m.Dashboard)
   },
   {
+    path: 'customer/profile',
+    canActivate: [authGuard, roleGuard('CUSTOMER')],
+    loadComponent: () =>
+      import('./features/customer/pages/profile/profile')
+        .then(m => m.Profile)
+  },
+  {
     path: 'customer/book-appointment',
     canActivate: [authGuard, roleGuard('CUSTOMER')],
     loadComponent: () =>
@@ -76,6 +83,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/branches/pages/admin-branches/admin-branches')
             .then(m => m.AdminBranches)
+      },
+      {
+        path: 'services',
+        loadComponent: () =>
+          import('./features/admin/pages/admin-services/admin-services')
+            .then(m => m.AdminServices)
       }
     ]
   },

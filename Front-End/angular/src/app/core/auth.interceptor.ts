@@ -5,6 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 const tokenStorageKey = 'appointment-booking-access-token';
+const firstNameStorageKey = 'appointment-booking-first-name';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = sessionStorage.getItem(tokenStorageKey);
@@ -22,6 +23,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   })).pipe(catchError(error => {
     if (error instanceof HttpErrorResponse && error.status === 401) {
       sessionStorage.removeItem(tokenStorageKey);
+      sessionStorage.removeItem(firstNameStorageKey);
       void router.navigate(['/login']);
     }
 

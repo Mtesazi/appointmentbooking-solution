@@ -3,12 +3,15 @@ package com.appointmentbooking.appointment.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "services")
 public class Offering {
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@Column(nullable = false, unique = true, length = 120)
@@ -21,6 +24,16 @@ public class Offering {
 	private boolean active;
 
 	protected Offering() {
+	}
+
+	public Offering(String name, int durationMinutes, boolean active) {
+		update(name, durationMinutes, active);
+	}
+
+	public void update(String name, int durationMinutes, boolean active) {
+		this.name = name;
+		this.durationMinutes = durationMinutes;
+		this.active = active;
 	}
 
 	public Long getId() {

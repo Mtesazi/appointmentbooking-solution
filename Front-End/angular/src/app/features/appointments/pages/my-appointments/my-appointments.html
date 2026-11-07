@@ -17,8 +17,13 @@
     <button type="button" class="retry-button" (click)="loadAppointments()">Try again</button>
   }
 
+  @if (successMessage) {
+    <p role="status">{{ successMessage }}</p>
+  }
+
   <section class="appointment-section">
     <h2>Upcoming Appointments</h2>
+    <p>Confirmed appointments can be cancelled before their scheduled start time.</p>
 
     @if (upcomingAppointments.length > 0) {
       <div class="appointment-list">
@@ -39,12 +44,52 @@
             </div>
 
             <span class="status confirmed">{{ appointment.status }}</span>
+            <button type="button" class="retry-button"
+              [disabled]="rescheduleSaving || cancellingId !== null"
+              (click)="startReschedule(appointment)">Reschedule</button>
             <button type="button" class="cancel-button"
-              [disabled]="cancellingId === appointment.id"
+              [disabled]="cancellingId !== null || rescheduleSaving"
               (click)="cancelAppointment(appointment)">
               {{ cancellingId === appointment.id ? 'Cancelling…' : 'Cancel' }}
             </button>
           </article>
+          @if (rescheduling?.id === appointment.id) {
+            <section class="reschedule-panel" [attr.aria-label]="'Reschedule ' + appointment.service">
+              <h3>Reschedule appointment</h3>
+              <p>Branch and service stay the same. Choose a new date and available time.</p>
+              <label for="reschedule-date">Date</label>
+              <input id="reschedule-date" type="date" [min]="today" [value]="rescheduleDate"
+                [disabled]="rescheduleSaving" #dateInput (change)="changeDate(dateInput.value)">
+              @if (loadingTimes) {
+                <p aria-live="polite">Loading available times…</p>
+              } @else if (timesLoaded && availableTimes.length === 0) {
+                <p>No times are available. Choose another date.</p>
+              }
+              @if (rescheduleError) {
+                <p class="error-message" role="alert">{{ rescheduleError }}</p>
+                @if (!loadingTimes && !timesLoaded && rescheduleDate) {
+                  <button type="button" (click)="loadAvailableTimes()">Retry availability</button>
+                }
+              }
+              @if (availableTimes.length) {
+                <label for="reschedule-time">Time</label>
+                <select id="reschedule-time" [value]="rescheduleTime" [disabled]="rescheduleSaving"
+                  #timeInput (change)="rescheduleTime = timeInput.value">
+                  <option value="">Select a time</option>
+                  @for (time of availableTimes; track time) {
+                    <option [value]="time">{{ time }}</option>
+                  }
+                </select>
+              }
+              <div class="reschedule-actions">
+                <button type="button" class="retry-button" (click)="submitReschedule()"
+                  [disabled]="!rescheduleTime || loadingTimes || rescheduleSaving">
+                  {{ rescheduleSaving ? 'Saving…' : 'Save new time' }}
+                </button>
+                <button type="button" (click)="closeReschedule()" [disabled]="rescheduleSaving">Close</button>
+              </div>
+            </section>
+          }
         }
       </div>
     } @else if (!loading && !errorMessage) {

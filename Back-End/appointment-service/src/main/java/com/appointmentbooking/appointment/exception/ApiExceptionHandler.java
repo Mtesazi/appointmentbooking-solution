@@ -1,6 +1,7 @@
 package com.appointmentbooking.appointment.exception;
 
 import java.time.Instant;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,6 +28,17 @@ public class ApiExceptionHandler {
 
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<ApiErrorResponse> dataConflict(DataIntegrityViolationException exception) {
+		for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+			if (cause instanceof SQLException sql && "23P01".equals(sql.getSQLState())
+					&& sql.getMessage() != null && sql.getMessage().contains("appointments_no_confirmed_overlap")) {
+				return response(HttpStatus.CONFLICT, "This time is no longer available at the selected branch", Map.of());
+			}
+			if (cause instanceof SQLException sql && "23505".equals(sql.getSQLState())
+					&& sql.getMessage() != null && (sql.getMessage().contains("services_name_ignore_case")
+							|| sql.getMessage().contains("uk_services_name"))) {
+				return response(HttpStatus.CONFLICT, "A service with this name already exists", Map.of());
+			}
+		}
 		return response(HttpStatus.CONFLICT, "The request conflicts with existing data", Map.of());
 	}
 

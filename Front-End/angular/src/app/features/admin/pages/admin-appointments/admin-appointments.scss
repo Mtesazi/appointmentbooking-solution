@@ -44,6 +44,36 @@
   box-shadow: 0 4px 16px rgba(27, 47, 72, 0.035);
 }
 
+.confirmation {
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #dfe6ee;
+  border-radius: 8px;
+  background: white;
+  color: #263b55;
+}
+
+.cancel-button,
+.keep-button {
+  padding: 8px 12px;
+  border: 1px solid #b94a4a;
+  border-radius: 6px;
+  background: white;
+  color: #a42e2e;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.keep-button {
+  margin-left: 8px;
+  border-color: #dfe6ee;
+  color: #263b55;
+}
+
 .filters {
   display: flex;
   align-items: center;

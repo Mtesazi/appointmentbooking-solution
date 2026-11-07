@@ -17,11 +17,14 @@ Appointment Booking is a full-stack application for customers to register, sign 
 ## Features
 
 - Customer registration and login with JWT authentication
+- Customer profile updates for name and phone number
 - Sign out with server-side access-token revocation
 - Customer dashboard with appointment summaries
 - Browse available branches and services
 - Create, view, and cancel appointments
 - Role-protected admin dashboard, appointment list, and branch management backed by PostgreSQL
+- Per-branch weekly opening hours and schedule-aware booking availability
+- Admin management of service names, durations and availability
 - Eureka service discovery and Spring Cloud Gateway routing
 - PostgreSQL persistence with Flyway-managed database migrations
 
@@ -47,6 +50,8 @@ CREATE DATABASE appointment_booking OWNER "dev-user";
 
 Flyway creates the schema and seed catalog data from `Back-End/appointment-service/src/main/resources/db/migration` when the backend starts. The PostgreSQL setup starts with an empty database and does not import data from another database.
 
+The booking overlap migration requires PostgreSQL's `btree_gist` extension and permission to create it. Existing overlapping confirmed appointments must be resolved before applying the migration; back up the database before upgrading.
+
 ### 2. Start service discovery and the gateway
 
 Start the registry first, then the gateway, each in a separate terminal:
@@ -62,6 +67,10 @@ cd Back-End/api-gateway
 ```
 
 The Eureka dashboard is at `http://localhost:8761`. The gateway listens on `http://localhost:8080` and routes requests to the registered `appointment-service` instance.
+
+The gateway uses `lb://appointment-service` by default; set `APPOINTMENT_SERVICE_URI` to override the route target when needed.
+
+For `/api/**`, the gateway handles CORS for `http://localhost:4200` and `http://127.0.0.1:4200` and removes the `Origin` header before forwarding requests, so the service does not add duplicate CORS headers. The appointment service retains its own CORS configuration for direct local access; update both configurations if the frontend origin changes.
 
 ### 3. Configure and start the appointment API
 
@@ -124,29 +133,69 @@ After the role migration, existing users should sign out and back in to receive 
 | `GET` | `/api/branches` | Authenticated |
 | `GET` | `/api/services` | Authenticated |
 | `GET` | `/api/customer/dashboard` | `CUSTOMER` |
+| `GET`, `PUT` | `/api/customer/profile` | `CUSTOMER` |
 | `GET` | `/api/appointments` | `CUSTOMER` |
+| `GET` | `/api/appointments/availability?branchId=1&serviceId=1&date=YYYY-MM-DD` | `CUSTOMER` |
+| `GET` | `/api/appointments/{appointmentId}/availability?date=YYYY-MM-DD` | `CUSTOMER` (owner) |
 | `POST` | `/api/appointments` | `CUSTOMER` |
 | `PATCH` | `/api/appointments/{appointmentId}/cancel` | `CUSTOMER` |
+| `PATCH` | `/api/appointments/{appointmentId}/reschedule` | `CUSTOMER` (owner) |
 | `GET` | `/api/admin/dashboard` | `ADMIN` |
 | `GET` | `/api/admin/appointments` | `ADMIN` |
+| `PATCH` | `/api/admin/appointments/{appointmentId}/cancel` | `ADMIN` |
 | `GET`, `POST`, `PUT`, `DELETE` | `/api/admin/branches[/{id}]` | `ADMIN` |
+| `GET`, `PUT` | `/api/admin/branches/{id}/hours` | `ADMIN` |
+| `GET`, `POST` | `/api/admin/services` | `ADMIN` |
+| `PUT` | `/api/admin/services/{id}` | `ADMIN` |
+
+Availability uses the server's local time, the selected service duration, and confirmed bookings at the selected branch. A slot may be taken after it is displayed; booking is rechecked and PostgreSQL prevents overlapping confirmed appointments even for simultaneous requests. The booking page refreshes available times after a conflict.
+
+Admins can configure one opening period per weekday or mark a day closed under **Branches → Opening hours**. Existing and new branches default to 09:00–17:00 every day. Availability offers starts every 30 minutes from opening time; bookings must finish by closing. Schedule changes that would leave a future confirmed appointment outside opening hours are rejected. Overnight hours and holiday exceptions are not supported. Times use the server's local time.
+
+Admins can add or edit services under **Services**, including activating or deactivating them. Existing appointments keep their booked durations when a service changes; new bookings and rescheduling use the current duration. Inactive services cannot be newly booked, but existing appointments may still be rescheduled.
+
+Customers can reschedule their own confirmed appointments before their scheduled start time from **My Appointments**. The branch and service remain unchanged; the availability and reschedule endpoints validate ownership and exclude the appointment itself from conflict checks. A reschedule request supplies `appointmentDate` and `time`.
+
+Customers may cancel only their own confirmed appointments, and only before the scheduled start time, using the server's local time. At or after the start time the cancellation endpoint returns HTTP 409 and leaves the appointment unchanged.
+
+Admins can cancel any customer's confirmed appointment before its scheduled start time from **Appointments**. The admin endpoint follows the same deadline and returns HTTP 204 on success.
+
+Customers can update their first name, last name, and phone from **My Profile**. The profile endpoint uses the authenticated customer identity; email and role are not editable through it.
 
 Authenticated requests must include the JWT access token in the `Authorization` header using the Bearer scheme.
 
 ## Tests and build
 
-Backend tests:
+GitHub Actions runs the Angular tests and production build, gateway tests, discovery compilation, and all appointment-service tests against an isolated PostgreSQL 15 database on pushes and pull requests. The CI database and JWT values are disposable test-only settings; no production secrets are required.
+
+To run all appointment-service tests locally, use a dedicated PostgreSQL test database. Its user must be able to create the `btree_gist` extension. Set the following values for that database (the JWT value below is for local tests only):
 
 ```bash
 cd Back-End/appointment-service
-./mvnw test
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/appointment_booking_test
+export SPRING_DATASOURCE_USERNAME=appointment_test
+export SPRING_DATASOURCE_PASSWORD=your_test_database_password
+export JWT_SECRET=local-only-test-secret-at-least-32-bytes-long
+export EUREKA_CLIENT_ENABLED=false
+export SPRING_CLOUD_DISCOVERY_ENABLED=false
+BOOKING_INTEGRATION_TEST=true ./mvnw test
+```
+
+The booking integration suite is opt-in via `BOOKING_INTEGRATION_TEST=true`. Without it, `./mvnw test` still requires the database and JWT configuration for the application context test. To run only the booking integration suite, add `-Dtest=BookingAvailabilityIntegrationTest` to the test command.
+
+Gateway tests and discovery compilation (from the repository root):
+
+```bash
+(cd Back-End/api-gateway && ../appointment-service/mvnw test)
+(cd Back-End/service-discovery && ../appointment-service/mvnw test)
 ```
 
 Frontend tests and production build:
 
 ```bash
 cd Front-End/angular
-npm test
+npm ci
+npm test -- --watch=false
 npm run build
 ```
 
