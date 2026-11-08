@@ -57,7 +57,7 @@ docker compose up --build -d
 
 Open the frontend at `http://localhost:4200`. The API is also available at `http://localhost:8080`, the appointment service at `http://localhost:8082`, and the Eureka dashboard at `http://localhost:8761`. Compose enables email notifications and routes them to Mailpit; view captured booking, rescheduling, and cancellation messages at `http://localhost:8026`.
 
-The Compose setup maps PostgreSQL to host port `5433` and Mailpit to host ports `1026` (SMTP) and `8026` (web inbox) by default to avoid conflicts with common local services. Override these ports in `.env` if needed. The appointment service uses Mailpit over the private Compose network, so it does not depend on the host port mapping.
+The Compose setup maps PostgreSQL to host port `5434` and Mailpit to host ports `1026` (SMTP) and `8026` (web inbox) by default to avoid conflicts with common local services. Override these ports in `.env` if needed. The appointment service uses Mailpit over the private Compose network, so it does not depend on the host port mapping.
 
 Ports `4200`, `8080`, `8082`, and `8761` must also be available; stop any locally running app services before starting Compose. Follow startup logs with `docker compose logs -f`; stop the containers with `docker compose down`. The PostgreSQL data volume is preserved when containers stop. The example credentials and Compose configuration are for local testing only; configure production secrets and a real SMTP provider separately.
 
