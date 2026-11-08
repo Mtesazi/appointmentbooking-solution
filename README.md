@@ -2,6 +2,26 @@
 
 Appointment Booking is a full-stack application for customers to register, sign in, browse services and branches, book appointments, and manage their bookings.
 
+## Quick start
+
+With Docker Engine and the Compose plugin installed, from the repository root:
+
+```bash
+cp .env.example .env        # then set POSTGRES_PASSWORD and JWT_SECRET (32+ random bytes)
+docker compose up --build -d
+```
+
+Open `http://localhost:4200`, register an account, and sign in. To use the admin area, see [Create an admin account](#create-an-admin-account). Stop everything with `docker compose down`.
+
+| Service | URL / host port | Notes |
+|---|---|---|
+| Frontend | `http://localhost:4200` | Angular app served by nginx |
+| API gateway | `http://localhost:8080` | Swagger UI at `/swagger-ui/index.html` |
+| Appointment service | `http://localhost:8082` | Direct access for diagnostics |
+| Eureka dashboard | `http://localhost:8761` | Should list `API-GATEWAY` and `APPOINTMENT-SERVICE` |
+| Mailpit inbox | `http://localhost:8026` | Captures booking emails; nothing is delivered |
+| PostgreSQL | `localhost:5434` | Database `appointment_booking` |
+
 ## Project structure
 
 ```text
@@ -36,6 +56,25 @@ Appointment Booking is a full-stack application for customers to register, sign 
 - Docker Engine with the Docker Compose plugin (for the containerized setup)
 
 The backend uses the included Maven Wrapper, so a separate Maven installation is not required.
+
+## Create an admin account
+
+New registrations always receive the `CUSTOMER` role. Register an account first, then promote it. With the Docker Compose setup:
+
+```bash
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d appointment_booking \
+  -c "UPDATE customers SET role = '"'"'ADMIN'"'"' WHERE lower(email) = lower('"'"'you@example.com'"'"')"'
+```
+
+Sign out and back in afterwards so your token carries the new role, then open `http://localhost:4200/admin`. Emails are stored in lowercase.
+
+## Troubleshooting
+
+- **`address already in use` for a port:** another process uses a host port. Change `POSTGRES_PORT`, `MAILPIT_SMTP_PORT` or `MAILPIT_WEB_PORT` in `.env`, or stop the other process. Ports `4200`, `8080`, `8082` and `8761` are fixed. Check with `ss -ltnp | grep <port>`.
+- **Login returns 401:** the account does not exist or the password is wrong. A fresh database has no users, so register first.
+- **Admin page redirects or returns 403:** the account is not `ADMIN`, or you have not signed in again since being promoted.
+- **Only one service on Eureka:** `appointment-service` can take up to a minute to register after startup. Check `docker compose logs appointment-service`.
+- **Reset all data:** `docker compose down -v` deletes the PostgreSQL volume, including every account and booking.
 
 ## Run locally
 
