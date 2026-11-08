@@ -22,6 +22,110 @@ Open `http://localhost:4200`, register an account, and sign in. To use the admin
 | Mailpit inbox | `http://localhost:8026` | Captures booking emails; nothing is delivered |
 | PostgreSQL | `localhost:5434` | Database `appointment_booking` |
 
+## Design
+
+### Architecture
+
+```mermaid
+flowchart LR
+    Browser["Browser"] --> FE["Frontend<br/>Angular + nginx :4200"]
+    FE -->|"/api/**"| GW["API Gateway<br/>Spring Cloud :8080"]
+    GW -->|"lb://appointment-service"| AS["Appointment Service<br/>Spring Boot :8082"]
+    GW -. "discovers" .-> EU["Service Discovery<br/>Eureka :8761"]
+    AS -. "registers" .-> EU
+    GW -. "registers" .-> EU
+    AS --> DB[("PostgreSQL<br/>Flyway migrations")]
+    AS -->|"SMTP (outbox job)"| MP["Mailpit :1025 / :8025"]
+```
+
+The Angular app sends API requests to the gateway, which resolves `appointment-service` through Eureka and forwards `/api/**`, Swagger UI and the OpenAPI docs. Authentication uses JWT bearer tokens; logout revokes the token server-side. Admin endpoints under `/api/admin/**` require the `ADMIN` role. The appointment service is also exposed on `:8082` for diagnostics only.
+
+### Booking flow
+
+```mermaid
+sequenceDiagram
+    actor C as Customer
+    participant FE as Frontend
+    participant GW as Gateway
+    participant AS as Appointment Service
+    participant DB as PostgreSQL
+    participant J as Email outbox job
+    participant M as Mailpit
+    C->>FE: Choose branch, service, date and time
+    FE->>GW: POST /api/appointments (JWT)
+    GW->>AS: Forward request
+    AS->>DB: Check opening hours, insert appointment + outbox email (one transaction)
+    DB-->>AS: Saved (overlaps rejected by exclusion constraint)
+    AS-->>FE: 201 Created
+    J->>DB: Poll pending emails
+    J->>M: Send confirmation via SMTP
+```
+
+### Database
+
+```mermaid
+erDiagram
+    customers ||--o{ appointments : books
+    branches ||--o{ appointments : hosts
+    services ||--o{ appointments : "is booked as"
+    branches ||--o{ branch_opening_hours : "has weekly hours"
+
+    customers {
+        bigint id PK
+        varchar first_name
+        varchar last_name
+        varchar email
+        varchar phone
+        varchar password_hash
+        varchar role "CUSTOMER or ADMIN"
+        timestamp created_at
+    }
+    branches {
+        bigint id PK
+        varchar name
+        boolean active
+    }
+    services {
+        bigint id PK
+        varchar name
+        int duration_minutes
+        boolean active
+    }
+    appointments {
+        bigint id PK
+        bigint customer_id FK
+        bigint branch_id FK
+        bigint service_id FK
+        date appointment_date
+        time start_time
+        time end_time
+        varchar status "CONFIRMED, COMPLETED or CANCELLED"
+        text notes
+    }
+    branch_opening_hours {
+        bigint branch_id FK
+        smallint day_of_week "1 to 7"
+        time open_time
+        time close_time
+    }
+    revoked_tokens {
+        varchar token_hash PK
+        timestamptz expires_at
+    }
+    email_outbox {
+        bigint id PK
+        varchar recipient
+        varchar subject
+        text body
+        varchar status
+        int attempt_count
+        timestamptz next_attempt_at
+        timestamptz sent_at
+    }
+```
+
+`revoked_tokens` and `email_outbox` are standalone tables. A database exclusion constraint (`btree_gist`) prevents overlapping confirmed appointments, so double booking is rejected even under concurrent requests. Schema changes are versioned in `Back-End/appointment-service/src/main/resources/db/migration`.
+
 ## Project structure
 
 ```text
