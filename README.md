@@ -33,10 +33,33 @@ Appointment Booking is a full-stack application for customers to register, sign 
 - Java 21
 - PostgreSQL 15 or compatible
 - Node.js and npm compatible with the Angular version in `Front-End/angular/package.json`
+- Docker Engine with the Docker Compose plugin (for the containerized setup)
 
 The backend uses the included Maven Wrapper, so a separate Maven installation is not required.
 
 ## Run locally
+
+### Run the full application with Docker Compose
+
+Docker Compose starts PostgreSQL, service discovery, the appointment API, API gateway, Angular frontend, and a Mailpit test inbox. This setup is intended for local development and testing; Mailpit captures messages and does not deliver email to real customers.
+
+Copy the example environment file and replace the example database password and JWT secret with local values:
+
+```bash
+cp .env.example .env
+```
+
+Set `POSTGRES_PASSWORD` and `JWT_SECRET` in `.env`. The JWT secret must be a random value of at least 32 bytes. Then build and start the application from the repository root:
+
+```bash
+docker compose up --build -d
+```
+
+Open the frontend at `http://localhost:4200`. The API is also available at `http://localhost:8080`, the appointment service at `http://localhost:8082`, and the Eureka dashboard at `http://localhost:8761`. Compose enables email notifications and routes them to Mailpit; view captured booking, rescheduling, and cancellation messages at `http://localhost:8026`.
+
+The Compose setup maps PostgreSQL to host port `5433` and Mailpit to host ports `1026` (SMTP) and `8026` (web inbox) by default to avoid conflicts with common local services. Override these ports in `.env` if needed. The appointment service uses Mailpit over the private Compose network, so it does not depend on the host port mapping.
+
+Ports `4200`, `8080`, `8082`, and `8761` must also be available; stop any locally running app services before starting Compose. Follow startup logs with `docker compose logs -f`; stop the containers with `docker compose down`. The PostgreSQL data volume is preserved when containers stop. The example credentials and Compose configuration are for local testing only; configure production secrets and a real SMTP provider separately.
 
 ### 1. Create the PostgreSQL database and application user
 

@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: appointment_booking
+      POSTGRES_USER: ${POSTGRES_USER:-dev-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d appointment_booking"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  service-discovery:
+    build:
+      context: .
+      dockerfile: docker/service-discovery.Dockerfile
+    ports:
+      - "8761:8761"
+
+  appointment-service:
+    build:
+      context: .
+      dockerfile: docker/appointment-service.Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/appointment_booking
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-dev-user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Copy .env.example to .env and set JWT_SECRET}
+      EUREKA_SERVER_URL: http://service-discovery:8761/eureka/
+      EMAIL_NOTIFICATIONS_ENABLED: "true"
+      EMAIL_FROM: no-reply@appointment.local
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_SMTP_AUTH: "false"
+      MAIL_SMTP_STARTTLS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      service-discovery:
+        condition: service_started
+    ports:
+      - "8082:8082"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: docker/api-gateway.Dockerfile
+    environment:
+      EUREKA_SERVER_URL: http://service-discovery:8761/eureka/
+    depends_on:
+      - service-discovery
+      - appointment-service
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    depends_on:
+      - api-gateway
+      - appointment-service
+    ports:
+      - "4200:80"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1026}:1025"
+      - "${MAILPIT_WEB_PORT:-8026}:8025"
+
+volumes:
+  postgres_data:
