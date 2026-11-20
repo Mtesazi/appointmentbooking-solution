@@ -13,11 +13,11 @@ cp .env.example .env        # then set POSTGRES_PASSWORD and JWT_SECRET (32+ ran
 docker compose up --build -d
 ```
 
-Open `http://localhost:4200`, register an account, and sign in. To use the admin area, see [Create an admin account](#create-an-admin-account). Stop everything with `docker compose down`.
+Open `http://localhost:4201`, register an account, and sign in. To use the admin area, see [Create an admin account](#create-an-admin-account). Stop everything with `docker compose down`.
 
 | Service | URL / host port | Notes |
 |---|---|---|
-| Frontend | `http://localhost:4200` | Angular app served by nginx |
+| Frontend | `http://localhost:4201` | Angular app served by nginx |
 | API gateway | `http://localhost:8080` | Swagger UI at `/swagger-ui/index.html` |
 | Appointment service | `http://localhost:8082` | Direct access for diagnostics |
 | Eureka dashboard | `http://localhost:8761` | Should list `API-GATEWAY` and `APPOINTMENT-SERVICE` |
@@ -30,7 +30,7 @@ Open `http://localhost:4200`, register an account, and sign in. To use the admin
 
 ```mermaid
 flowchart LR
-    Browser["Browser"] --> FE["Frontend<br/>Angular + nginx :4200"]
+    Browser["Browser"] --> FE["Frontend<br/>Angular + nginx :4201"]
     FE -->|"/api/**"| GW["API Gateway<br/>Spring Cloud :8080"]
     GW -->|"lb://appointment-service"| AS["Appointment Service<br/>Spring Boot :8082"]
     GW -. "discovers" .-> EU["Service Discovery<br/>Eureka :8761"]
@@ -172,11 +172,11 @@ docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d appointment_booking \
   -c "UPDATE customers SET role = '"'"'ADMIN'"'"' WHERE lower(email) = lower('"'"'you@example.com'"'"')"'
 ```
 
-Sign out and back in afterwards so your token carries the new role, then open `http://localhost:4200/admin`. Emails are stored in lowercase.
+Sign out and back in afterwards so your token carries the new role, then open `http://localhost:4201/admin` (or `http://localhost:4200/admin` for the local Angular dev server). Emails are stored in lowercase.
 
 ## Troubleshooting
 
-- **`address already in use` for a port:** another process uses a host port. Change `POSTGRES_PORT`, `MAILPIT_SMTP_PORT` or `MAILPIT_WEB_PORT` in `.env`, or stop the other process. Ports `4200`, `8080`, `8082` and `8761` are fixed. Check with `ss -ltnp | grep <port>`.
+- **`address already in use` for a port:** another process uses a host port. Change `POSTGRES_PORT`, `MAILPIT_SMTP_PORT` or `MAILPIT_WEB_PORT` in `.env`, or stop the other process. Compose ports `4201`, `8080`, `8082` and `8761` are fixed. Check with `ss -ltnp | grep <port>`.
 - **Login returns 401:** the account does not exist or the password is wrong. A fresh database has no users, so register first.
 - **Admin page redirects or returns 403:** the account is not `ADMIN`, or you have not signed in again since being promoted.
 - **Only one service on Eureka:** `appointment-service` can take up to a minute to register after startup. Check `docker compose logs appointment-service`.
@@ -200,11 +200,11 @@ Set `POSTGRES_PASSWORD` and `JWT_SECRET` in `.env`. The JWT secret must be a ran
 docker compose up --build -d
 ```
 
-Open the frontend at `http://localhost:4200`. The API is also available at `http://localhost:8080`, the appointment service at `http://localhost:8082`, and the Eureka dashboard at `http://localhost:8761`. Compose enables email notifications and routes them to Mailpit; view captured booking, rescheduling, and cancellation messages at `http://localhost:8026`.
+Open the frontend at `http://localhost:4201`. The API is also available at `http://localhost:8080`, the appointment service at `http://localhost:8082`, and the Eureka dashboard at `http://localhost:8761`. Compose enables email notifications and routes them to Mailpit; view captured booking, rescheduling, and cancellation messages at `http://localhost:8026`.
 
 The Compose setup maps PostgreSQL to host port `5434` and Mailpit to host ports `1026` (SMTP) and `8026` (web inbox) by default to avoid conflicts with common local services. Override these ports in `.env` if needed. The appointment service uses Mailpit over the private Compose network, so it does not depend on the host port mapping.
 
-Ports `4200`, `8080`, `8082`, and `8761` must also be available; stop any locally running app services before starting Compose. Follow startup logs with `docker compose logs -f`; stop the containers with `docker compose down`. The PostgreSQL data volume is preserved when containers stop. The example credentials and Compose configuration are for local testing only; configure production secrets and a real SMTP provider separately.
+Ports `4201`, `8080`, `8082`, and `8761` must also be available; stop any locally running app services before starting Compose. Follow startup logs with `docker compose logs -f`; stop the containers with `docker compose down`. The PostgreSQL data volume is preserved when containers stop. The example credentials and Compose configuration are for local testing only; configure production secrets and a real SMTP provider separately.
 
 ### 1. Create the PostgreSQL database and application user
 
@@ -238,7 +238,7 @@ The Eureka dashboard is at `http://localhost:8761`. The gateway listens on `http
 
 The gateway uses `lb://appointment-service` by default; set `APPOINTMENT_SERVICE_URI` to override the route target when needed.
 
-For `/api/**`, the gateway handles CORS for `http://localhost:4200` and `http://127.0.0.1:4200` and removes the `Origin` header before forwarding requests, so the service does not add duplicate CORS headers. The appointment service retains its own CORS configuration for direct local access; update both configurations if the frontend origin changes.
+For `/api/**`, the gateway handles CORS for `http://localhost:4200`, `http://127.0.0.1:4200`, `http://localhost:4201`, and `http://127.0.0.1:4201` and removes the `Origin` header before forwarding requests, so the service does not add duplicate CORS headers. Port `4200` is for the Angular dev server and `4201` is for Compose. The appointment service retains the same CORS configuration for direct local access; update both configurations if the frontend origin changes.
 
 ### 3. Configure and start the appointment API
 

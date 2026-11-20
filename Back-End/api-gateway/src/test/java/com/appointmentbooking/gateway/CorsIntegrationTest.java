@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -44,35 +46,39 @@ class CorsIntegrationTest {
 		backend.stop(0);
 	}
 
-	@Test
-	void preflightAllowsAngularWithoutForwardingToBackend() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = {"http://localhost:4200", "http://127.0.0.1:4200",
+			"http://localhost:4201", "http://127.0.0.1:4201"})
+	void preflightAllowsAngularWithoutForwardingToBackend(String origin) throws Exception {
 		int before = forwardedRequests.get();
 		HttpResponse<String> response = client.send(request("/api/auth/register")
-				.header("Origin", "http://localhost:4200")
+				.header("Origin", origin)
 				.header("Access-Control-Request-Method", "POST")
 				.header("Access-Control-Request-Headers", "content-type, authorization")
 				.method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build(),
 				HttpResponse.BodyHandlers.ofString());
 
 		assertEquals(200, response.statusCode());
-		assertEquals(List.of("http://localhost:4200"), response.headers().allValues("Access-Control-Allow-Origin"));
+		assertEquals(List.of(origin), response.headers().allValues("Access-Control-Allow-Origin"));
 		assertTrue(response.headers().firstValue("Access-Control-Allow-Methods").orElseThrow().contains("POST"));
 		assertTrue(response.headers().firstValue("Access-Control-Allow-Headers").orElseThrow()
 				.toLowerCase().contains("authorization"));
 		assertEquals(before, forwardedRequests.get());
 	}
 
-	@Test
-	void actualRequestHasOneCorsHeaderAndDoesNotForwardOrigin() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = {"http://localhost:4200", "http://127.0.0.1:4200",
+			"http://localhost:4201", "http://127.0.0.1:4201"})
+	void actualRequestHasOneCorsHeaderAndDoesNotForwardOrigin(String origin) throws Exception {
 		HttpResponse<String> response = client.send(request("/api/auth/login")
-				.header("Origin", "http://127.0.0.1:4200")
+				.header("Origin", origin)
 				.header("Content-Type", "application/json")
 				.header("Authorization", "Bearer test-token")
 				.POST(HttpRequest.BodyPublishers.ofString("{}")).build(),
 				HttpResponse.BodyHandlers.ofString());
 
 		assertEquals(400, response.statusCode());
-		assertEquals(List.of("http://127.0.0.1:4200"), response.headers().allValues("Access-Control-Allow-Origin"));
+		assertEquals(List.of(origin), response.headers().allValues("Access-Control-Allow-Origin"));
 		assertNull(forwardedOrigin.get());
 		assertEquals("Bearer test-token", forwardedAuthorization.get());
 	}
