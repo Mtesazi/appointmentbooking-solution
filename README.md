@@ -18,8 +18,8 @@ Open `http://localhost:4201`, register an account, and sign in. To use the admin
 | Service | URL / host port | Notes |
 |---|---|---|
 | Frontend | `http://localhost:4201` | Angular app served by nginx |
-| API gateway | `http://localhost:8080` | Swagger UI at `/swagger-ui/index.html` |
-| Appointment service | `http://localhost:8082` | Direct access for diagnostics |
+| API gateway | `http://localhost:8080` | Routes API and Swagger requests to the appointment service |
+| Appointment service | `http://localhost:8082` | Direct access; Swagger UI at `http://localhost:8082/swagger-ui/index.html` |
 | Eureka dashboard | `http://localhost:8761` | Should list `API-GATEWAY` and `APPOINTMENT-SERVICE` |
 | Mailpit inbox | `http://localhost:8026` | Captures booking emails; nothing is delivered |
 | PostgreSQL | `localhost:5434` | Database `appointment_booking` |
@@ -281,7 +281,7 @@ Appointment emails are queued in PostgreSQL in the same transaction as the booki
 
 Keep SMTP credentials in the deployment secret manager. Failed sends are retried with exponential backoff; after ten failures a message is marked `DEAD` in `email_outbox` and requires operational review. The outbox provides durable, at-least-once delivery: a process interruption after the SMTP server accepts a message but before the database records success can result in a duplicate email.
 
-The appointment service remains directly available on port `8082` for local diagnostics. Use `http://localhost:8080/api` for API requests through the gateway. Swagger UI is available through the gateway at `http://localhost:8080/swagger-ui/index.html`; the OpenAPI specification is at `http://localhost:8080/v3/api-docs`. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
+The appointment service is directly available on port `8082`, with Swagger UI at `http://localhost:8082/swagger-ui/index.html` and the OpenAPI specification at `http://localhost:8082/v3/api-docs`. When the gateway and service discovery are running, Swagger UI and the specification are also available through the gateway at `http://localhost:8080/swagger-ui/index.html` and `http://localhost:8080/v3/api-docs`. Use `http://localhost:8080/api` for API requests through the gateway. In Swagger UI, use **Authorize** and enter a JWT access token to try authenticated endpoints. Obtain a token from the login or registration endpoint; admin endpoints still require an account with the `ADMIN` role.
 
 ### 4. Run the frontend
 
