@@ -349,20 +349,22 @@ Authenticated requests must include the JWT access token in the `Authorization` 
 
 ## Tests and build
 
-GitHub Actions runs the Angular tests and production build, gateway tests, discovery compilation, and all appointment-service tests against an isolated PostgreSQL 15 database on pushes and pull requests. The CI database and JWT values are disposable test-only settings; no production secrets are required.
+GitHub Actions runs the Angular tests and production build, gateway tests, discovery compilation, and all appointment-service tests against an isolated PostgreSQL 15 database on pushes and pull requests. It also builds and starts the Docker Compose stack and verifies the frontend, gateway, Swagger, CORS, registration, login, booking, cancellation, and Mailpit notifications. This is an API-level smoke test, not a browser UI test. The CI database and JWT values are disposable test-only settings; no production secrets are required.
 
 ```mermaid
 flowchart LR
     T["Push or pull request"] --> F["frontend job<br/>npm ci → npm test → npm run build"]
     T --> B["backend job<br/>PostgreSQL 15 service container"]
+    T --> C["compose job<br/>Build stack and smoke test"]
     B --> B1["Appointment service tests"] --> B2["Gateway tests"] --> B3["Compile service discovery"]
     F --> R{"All jobs pass?"}
     B3 --> R
+    C --> R
     R -->|Yes| OK["Green check on the commit or PR"]
     R -->|No| X["Red cross: fix before merging"]
 ```
 
-The workflow is defined in `.github/workflows/ci.yml`; the two jobs run in parallel and the badge at the top of this file shows the latest result.
+The workflow is defined in `.github/workflows/ci.yml`; the three jobs run in parallel and the badge at the top of this file shows the latest result. The Compose job removes its isolated containers and database volume after the test.
 
 To run all appointment-service tests locally, use a dedicated PostgreSQL test database. Its user must be able to create the `btree_gist` extension. Set the following values for that database (the JWT value below is for local tests only):
 
